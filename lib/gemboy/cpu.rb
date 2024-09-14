@@ -321,14 +321,42 @@ module Gemboy
                     and_a_r(:h)
                 when 0xA5
                     and_a_r(:l)
+                when 0xA6
+                    and_a_hl
+                when 0xE6
+                    and_a_n(data[1])
             end
         end
 
         private
 
         def and_a_r(r)
+            _and_n(registers[r])
+
+            @program_counter += 1
+
+            return 4
+        end
+
+        def and_a_hl
+            _and_n(@memory[hl])
+
+            @program_counter += 1
+
+            return 8
+        end
+
+        def and_a_n(n)
+            _and_n(n)
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def _and_n(n)
             o1 = registers[:a]
-            o2 = registers[r]
+            o2 = n
 
             result = o1 & o2
 
@@ -338,10 +366,6 @@ module Gemboy
 
             set_flag(ZERO_FLAG) if result == 0x00
             set_flag(HALF_CARRY_FLAG) 
-
-            @program_counter += 1
-
-            return 4
         end
 
         def sub_a_r(r)

@@ -2323,6 +2323,121 @@ describe CPU do
                     end
                 end
             end
+
+            and_a_hl_instructions = [
+                { hl_value: 0x04, a_value: 0xA0, expected_a_value_after_op: 0x00, flags_set: [CPU::HALF_CARRY_FLAG, CPU::ZERO_FLAG], flags_unset: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { hl_value: 0x0F, a_value: 0xA5, expected_a_value_after_op: 0x05, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { hl_value: 0xF0, a_value: 0x0F, expected_a_value_after_op: 0x00, flags_set: [CPU::HALF_CARRY_FLAG, CPU::ZERO_FLAG], flags_unset: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { hl_value: 0xFF, a_value: 0xFF, expected_a_value_after_op: 0xFF, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { hl_value: 0xF0, a_value: 0xA5, expected_a_value_after_op: 0xA0, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { hl_value: 0x0F, a_value: 0xAA, expected_a_value_after_op: 0x0A, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { hl_value: 0x01, a_value: 0x0F, expected_a_value_after_op: 0x01, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+            ]
+
+            and_a_hl_instructions.each do |inst|
+                describe "AND A, (HL)" do
+                    let(:data) { [0xA6] }
+
+                    before do
+                        subject.registers[:h] = 0x12
+                        subject.registers[:l] = 0x34
+                        subject.registers[:a] = inst[:a_value]
+                        memory[0x1234] = inst[:hl_value]
+                    end
+
+                    it "should AND the value in memory at (HL) #{inst[:hl_value]} register from A" do
+                        subject.instruction data
+
+                        _(subject.registers[:a]).must_equal(inst[:expected_a_value_after_op])
+                    end
+
+                    it "should set the flags #{inst[:flags_set]}" do
+                        subject.instruction data
+
+                        inst[:flags_set].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                        end
+                    end
+
+                    it "should unset the flags #{inst[:flags_unset]}" do
+                        subject.instruction data
+
+                        inst[:flags_unset].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal false
+                        end
+                    end
+
+                    it 'should return correct amount of cycles used' do
+                      cycles = subject.instruction data
+
+                      _(cycles).must_equal 8
+                    end
+
+                    it 'should update the program_counter correctly' do
+                        subject.program_counter = 0x100
+
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal(0x101)
+                    end
+                end
+            end
+
+            and_a_n_instructions = [
+                { n_value: 0x04, a_value: 0xA0, expected_a_value_after_op: 0x00, flags_set: [CPU::HALF_CARRY_FLAG, CPU::ZERO_FLAG], flags_unset: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { n_value: 0x0F, a_value: 0xA5, expected_a_value_after_op: 0x05, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { n_value: 0xF0, a_value: 0x0F, expected_a_value_after_op: 0x00, flags_set: [CPU::HALF_CARRY_FLAG, CPU::ZERO_FLAG], flags_unset: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { n_value: 0xFF, a_value: 0xFF, expected_a_value_after_op: 0xFF, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { n_value: 0xF0, a_value: 0xA5, expected_a_value_after_op: 0xA0, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { n_value: 0x0F, a_value: 0xAA, expected_a_value_after_op: 0x0A, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+                { n_value: 0x01, a_value: 0x0F, expected_a_value_after_op: 0x01, flags_set: [CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG] },
+            ]
+
+            and_a_n_instructions.each do |inst|
+                describe "AND A, n" do
+                    let(:data) { [0xE6, inst[:n_value]] }
+
+                    before do
+                        subject.registers[:a] = inst[:a_value]
+                    end
+
+                    it "should AND the value #{inst[:n_value]} from A" do
+                        subject.instruction data
+
+                        _(subject.registers[:a]).must_equal(inst[:expected_a_value_after_op])
+                    end
+
+                    it "should set the flags #{inst[:flags_set]}" do
+                        subject.instruction data
+
+                        inst[:flags_set].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                        end
+                    end
+
+                    it "should unset the flags #{inst[:flags_unset]}" do
+                        subject.instruction data
+
+                        inst[:flags_unset].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal false
+                        end
+                    end
+
+                    it 'should return correct amount of cycles used' do
+                      cycles = subject.instruction data
+
+                      _(cycles).must_equal 8
+                    end
+
+                    it 'should update the program_counter correctly' do
+                        subject.program_counter = 0x100
+
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal(0x102)
+                    end
+                end
+            end
         end
     end
 end
