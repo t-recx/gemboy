@@ -289,6 +289,8 @@ module Gemboy
                     sub_a_hl
                 when 0xD6
                     sub_n(data[1])
+                when 0x9F
+                    sbc_a_r(:a)
                 when 0x98
                     sbc_a_r(:b)
                 when 0x99
@@ -301,22 +303,41 @@ module Gemboy
                     sbc_a_r(:h)
                 when 0x9D
                     sbc_a_r(:l)
-                when 0x9F
-                    sbc_a_r(:a)
+                when 0x9E
+                    sbc_a_hl
+                when 0xDE
+                    sbc_a_n(data[1])
+                when 0xA7
+                    and_a_r(:a)
+                when 0xA0
+                    and_a_r(:b)
+                when 0xA1
+                    and_a_r(:c)
+                when 0xA2
+                    and_a_r(:d)
+                when 0xA3
+                    and_a_r(:e)
+                when 0xA4
+                    and_a_r(:h)
+                when 0xA5
+                    and_a_r(:l)
             end
         end
 
         private
 
-        def add_a_r(r)
-            o1 = @registers[:a]
-            o2 = @registers[r]
+        def and_a_r(r)
+            o1 = registers[:a]
+            o2 = registers[r]
 
-            result = o1 + o2
+            result = o1 & o2
 
-            set_flags_add(o1, o2, result)
+            registers[:a] = result
 
-            @registers[:a] = result & 0xFF
+            reset_flags
+
+            set_flag(ZERO_FLAG) if result == 0x00
+            set_flag(HALF_CARRY_FLAG) 
 
             @program_counter += 1
 
@@ -357,6 +378,26 @@ module Gemboy
             return 4
         end
 
+        def sbc_a_hl
+            carry = flag_set?(CARRY_FLAG) ? 1 : 0
+
+            _sub_n(@memory[hl], carry)
+
+            @program_counter += 1
+
+            return 8
+        end
+
+        def sbc_a_n(n)
+            carry = flag_set?(CARRY_FLAG) ? 1 : 0
+
+            _sub_n(n, carry)
+
+            @program_counter += 2
+
+            return 8
+        end
+
         def _sub_n(n, carry = 0)
             o1 = @registers[:a]
             o2 = n
@@ -366,6 +407,21 @@ module Gemboy
             set_flags_sub(o1, o2, result, carry)
 
             @registers[:a] = result & 0xFF
+        end
+
+        def add_a_r(r)
+            o1 = @registers[:a]
+            o2 = @registers[r]
+
+            result = o1 + o2
+
+            set_flags_add(o1, o2, result)
+
+            @registers[:a] = result & 0xFF
+
+            @program_counter += 1
+
+            return 4
         end
 
         def adc_a_r(r)
