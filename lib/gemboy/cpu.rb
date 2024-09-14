@@ -289,6 +289,20 @@ module Gemboy
                     sub_a_hl
                 when 0xD6
                     sub_n(data[1])
+                when 0x98
+                    sbc_a_r(:b)
+                when 0x99
+                    sbc_a_r(:c)
+                when 0x9A
+                    sbc_a_r(:d)
+                when 0x9B
+                    sbc_a_r(:e)
+                when 0x9C
+                    sbc_a_r(:h)
+                when 0x9D
+                    sbc_a_r(:l)
+                when 0x9F
+                    sbc_a_r(:a)
             end
         end
 
@@ -333,13 +347,23 @@ module Gemboy
             return 8
         end
 
-        def _sub_n(n)
+        def sbc_a_r(r)
+            carry = flag_set?(CARRY_FLAG) ? 1 : 0
+
+            _sub_n(@registers[r], carry)
+
+            @program_counter += 1
+
+            return 4
+        end
+
+        def _sub_n(n, carry = 0)
             o1 = @registers[:a]
             o2 = n
 
-            result = o1 - o2
+            result = o1 - o2 - carry
 
-            set_flags_sub(o1, o2, result)
+            set_flags_sub(o1, o2, result, carry)
 
             @registers[:a] = result & 0xFF
         end
