@@ -325,10 +325,65 @@ module Gemboy
                     and_a_hl
                 when 0xE6
                     and_a_n(data[1])
+                when 0xB7
+                    or_a_r(:a)
+                when 0xB0
+                    or_a_r(:b)
+                when 0xB1
+                    or_a_r(:c)
+                when 0xB2
+                    or_a_r(:d)
+                when 0xB3
+                    or_a_r(:e)
+                when 0xB4
+                    or_a_r(:h)
+                when 0xB5
+                    or_a_r(:l)
+                when 0xB6
+                    or_a_hl
+                when 0xF6
+                    or_a_n(data[1])
             end
         end
 
         private
+
+        def or_a_n(n)
+            _or_a_n(n)
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def or_a_hl
+            _or_a_n(@memory[hl])
+
+            @program_counter += 1
+
+            return 8
+        end
+
+        def or_a_r(r)
+            _or_a_n(registers[r])
+
+            @program_counter += 1
+
+            return 4
+        end
+
+        def _or_a_n(n)
+            o1 = registers[:a]
+            o2 = n
+
+            result = o1 | o2
+
+            registers[:a] = result
+
+            reset_flags
+
+            set_flag(ZERO_FLAG) if result == 0x00
+        end
 
         def and_a_r(r)
             _and_n(registers[r])
