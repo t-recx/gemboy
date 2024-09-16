@@ -379,10 +379,54 @@ module Gemboy
                     cp_a_hl
                 when 0xFE
                     cp_a_n(data[1])
+                when 0x3C
+                    inc_r(:a)
+                when 0x04
+                    inc_r(:b)
+                when 0x0C
+                    inc_r(:c)
+                when 0x14
+                    inc_r(:d)
+                when 0x1C
+                    inc_r(:e)
+                when 0x24
+                    inc_r(:h)
+                when 0x2C
+                    inc_r(:l)
+                when 0x34
+                    inc_hl
             end
         end
 
         private
+
+        def inc_hl
+            result = (@memory[hl] + 1) & 0xFF
+
+            clear_flag(SUBTRACT_FLAG)
+            set_flag(ZERO_FLAG) if result == 0x00
+            set_flag(HALF_CARRY_FLAG) if (((@memory[hl] & 0xF) + 1) & 0x10) == 0x10
+
+            @memory[hl] = result
+
+            @program_counter += 1
+
+            return 12
+        end
+
+        def inc_r(r)
+            result = (@registers[r] + 1) & 0xFF
+
+            clear_flag(SUBTRACT_FLAG)
+            set_flag(ZERO_FLAG) if result == 0x00
+            set_flag(HALF_CARRY_FLAG) if (((@registers[r] & 0xF) + 1) & 0x10) == 0x10
+
+            @registers[r] = result
+
+            @program_counter += 1
+
+            return 4
+        end
 
         def cp_a_n(n)
             _cp_n(n)
@@ -408,13 +452,13 @@ module Gemboy
             return 4
         end
 
-        def _cp_n(n, carry = 0)
+        def _cp_n(n)
             o1 = @registers[:a]
             o2 = n
 
-            result = o1 - o2 - carry
+            result = o1 - o2
 
-            set_flags_sub(o1, o2, result, carry)
+            set_flags_sub(o1, o2, result)
         end
 
         def xor_a_n(n)
