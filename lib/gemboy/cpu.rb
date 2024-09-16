@@ -361,10 +361,61 @@ module Gemboy
                     xor_a_hl
                 when 0xEE
                     xor_a_n(data[1])
+                when 0xBF
+                    cp_a_r(:a)
+                when 0xB8
+                    cp_a_r(:b)
+                when 0xB9
+                    cp_a_r(:c)
+                when 0xBA
+                    cp_a_r(:d)
+                when 0xBB
+                    cp_a_r(:e)
+                when 0xBC
+                    cp_a_r(:h)
+                when 0xBD
+                    cp_a_r(:l)
+                when 0xBE
+                    cp_a_hl
+                when 0xFE
+                    cp_a_n(data[1])
             end
         end
 
         private
+
+        def cp_a_n(n)
+            _cp_n(n)
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def cp_a_hl
+            _cp_n(memory[hl])
+
+            @program_counter += 1
+
+            return 8
+        end
+
+        def cp_a_r(r)
+            _cp_n(@registers[r])
+
+            @program_counter += 1
+
+            return 4
+        end
+
+        def _cp_n(n, carry = 0)
+            o1 = @registers[:a]
+            o2 = n
+
+            result = o1 - o2 - carry
+
+            set_flags_sub(o1, o2, result, carry)
+        end
 
         def xor_a_n(n)
             _xor_a_n(n)

@@ -2893,6 +2893,236 @@ describe CPU do
                     end
                 end
             end
+
+            cp_a_r_instructions = [
+                { source: :a, source_value: 0x00, a_value: 0x00, opcode: 0xBF, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :a, source_value: 0x0F, a_value: 0x0F, opcode: 0xBF, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :a, source_value: 0xF0, a_value: 0xF0, opcode: 0xBF, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :a, source_value: 0xFF, a_value: 0xFF, opcode: 0xBF, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :b, source_value: 0x00, a_value: 0x00, opcode: 0xB8, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :b, source_value: 0x00, a_value: 0x00, opcode: 0xB8, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :b, source_value: 0x10, a_value: 0x20, opcode: 0xB8, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :b, source_value: 0xFF, a_value: 0x00, opcode: 0xB8, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG] },
+                { source: :b, source_value: 0x0F, a_value: 0x1F, opcode: 0xB8, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :b, source_value: 0xF0, a_value: 0xFF, opcode: 0xB8, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :b, source_value: 0x01, a_value: 0x01, opcode: 0xB8, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :b, source_value: 0x80, a_value: 0x00, opcode: 0xB8, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG] },
+                { source: :b, source_value: 0x3F, a_value: 0x40, opcode: 0xB8, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { source: :c, source_value: 0x00, a_value: 0x00, opcode: 0xB9, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :c, source_value: 0x00, a_value: 0x00, opcode: 0xB9, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :c, source_value: 0x10, a_value: 0x20, opcode: 0xB9, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :c, source_value: 0xFF, a_value: 0x00, opcode: 0xB9, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG] },
+                { source: :c, source_value: 0x0F, a_value: 0x1F, opcode: 0xB9, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :c, source_value: 0xF0, a_value: 0xFF, opcode: 0xB9, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :c, source_value: 0x01, a_value: 0x01, opcode: 0xB9, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :c, source_value: 0x80, a_value: 0x00, opcode: 0xB9, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG] },
+                { source: :c, source_value: 0x3F, a_value: 0x40, opcode: 0xB9, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { source: :d, source_value: 0x00, a_value: 0x00, opcode: 0xBA, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :d, source_value: 0x00, a_value: 0x00, opcode: 0xBA, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :d, source_value: 0x10, a_value: 0x20, opcode: 0xBA, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :d, source_value: 0xFF, a_value: 0x00, opcode: 0xBA, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG] },
+                { source: :d, source_value: 0x0F, a_value: 0x1F, opcode: 0xBA, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :d, source_value: 0xF0, a_value: 0xFF, opcode: 0xBA, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :d, source_value: 0x01, a_value: 0x01, opcode: 0xBA, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :d, source_value: 0x80, a_value: 0x00, opcode: 0xBA, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG] },
+                { source: :d, source_value: 0x3F, a_value: 0x40, opcode: 0xBA, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { source: :e, source_value: 0x00, a_value: 0x00, opcode: 0xBB, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :e, source_value: 0x00, a_value: 0x00, opcode: 0xBB, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :e, source_value: 0x10, a_value: 0x20, opcode: 0xBB, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :e, source_value: 0xFF, a_value: 0x00, opcode: 0xBB, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG] },
+                { source: :e, source_value: 0x0F, a_value: 0x1F, opcode: 0xBB, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :e, source_value: 0xF0, a_value: 0xFF, opcode: 0xBB, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :e, source_value: 0x01, a_value: 0x01, opcode: 0xBB, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :e, source_value: 0x80, a_value: 0x00, opcode: 0xBB, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG] },
+                { source: :e, source_value: 0x3F, a_value: 0x40, opcode: 0xBB, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { source: :h, source_value: 0x00, a_value: 0x00, opcode: 0xBC, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :h, source_value: 0x00, a_value: 0x00, opcode: 0xBC, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :h, source_value: 0x10, a_value: 0x20, opcode: 0xBC, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :h, source_value: 0xFF, a_value: 0x00, opcode: 0xBC, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG] },
+                { source: :h, source_value: 0x0F, a_value: 0x1F, opcode: 0xBC, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :h, source_value: 0xF0, a_value: 0xFF, opcode: 0xBC, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :h, source_value: 0x01, a_value: 0x01, opcode: 0xBC, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :h, source_value: 0x80, a_value: 0x00, opcode: 0xBC, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG] },
+                { source: :h, source_value: 0x3F, a_value: 0x40, opcode: 0xBC, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { source: :l, source_value: 0x00, a_value: 0x00, opcode: 0xBD, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :l, source_value: 0x00, a_value: 0x00, opcode: 0xBD, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :l, source_value: 0x10, a_value: 0x20, opcode: 0xBD, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :l, source_value: 0xFF, a_value: 0x00, opcode: 0xBD, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG] },
+                { source: :l, source_value: 0x0F, a_value: 0x1F, opcode: 0xBD, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :l, source_value: 0xF0, a_value: 0xFF, opcode: 0xBD, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :l, source_value: 0x01, a_value: 0x01, opcode: 0xBD, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { source: :l, source_value: 0x80, a_value: 0x00, opcode: 0xBD, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG] },
+                { source: :l, source_value: 0x3F, a_value: 0x40, opcode: 0xBD, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+            ]
+
+            cp_a_r_instructions.each do |inst|
+                describe "CP A, r" do
+                    let(:data) { [inst[:opcode]] }
+
+                    before do
+                        subject.registers[inst[:source]] = inst[:source_value]
+                        subject.registers[:a] = inst[:a_value]
+                    end
+
+                    it "should not change value of A" do
+                        subject.instruction data
+
+                        _(subject.registers[:a]).must_equal(inst[:a_value])
+                    end
+
+                    it "should set the flags #{inst[:flags_set]}" do
+                        subject.instruction data
+
+                        inst[:flags_set].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                        end
+                    end
+
+                    it "should unset the flags #{inst[:flags_unset]}" do
+                        subject.instruction data
+
+                        inst[:flags_unset].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal false
+                        end
+                    end
+
+                    it 'should return correct amount of cycles used' do
+                      cycles = subject.instruction data
+
+                      _(cycles).must_equal 4
+                    end
+
+                    it 'should update the program_counter correctly' do
+                        subject.program_counter = 0x100
+
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal(0x101)
+                    end
+                end
+            end
+
+            cp_a_hl_instructions = [
+                { hl_value: 0x00, a_value: 0x00, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { hl_value: 0x00, a_value: 0x00, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { hl_value: 0x10, a_value: 0x20, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { hl_value: 0xFF, a_value: 0x00, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG] },
+                { hl_value: 0x0F, a_value: 0x1F, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { hl_value: 0xF0, a_value: 0xFF, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { hl_value: 0x01, a_value: 0x01, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { hl_value: 0x80, a_value: 0x00, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG] },
+                { hl_value: 0x3F, a_value: 0x40, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+            ]
+            cp_a_hl_instructions = []
+
+            cp_a_hl_instructions.each do |inst|
+                describe "CP A, (HL)" do
+                    let(:data) { [0xBE] }
+
+                    before do
+                        subject.registers[:h] = 0x12
+                        subject.registers[:l] = 0x34
+                        subject.registers[:a] = inst[:a_value]
+
+                        memory[0x1234] = inst[:hl_value]
+                    end
+
+                    it "should not change value of A" do
+                        subject.instruction data
+
+                        _(subject.registers[:a]).must_equal(inst[:a_value])
+                    end
+
+                    it "should set the flags #{inst[:flags_set]}" do
+                        subject.instruction data
+
+                        inst[:flags_set].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                        end
+                    end
+
+                    it "should unset the flags #{inst[:flags_unset]}" do
+                        subject.instruction data
+
+                        inst[:flags_unset].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal false
+                        end
+                    end
+
+                    it 'should return correct amount of cycles used' do
+                      cycles = subject.instruction data
+
+                      _(cycles).must_equal 8
+                    end
+
+                    it 'should update the program_counter correctly' do
+                        subject.program_counter = 0x100
+
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal(0x101)
+                    end
+                end
+            end
+
+            cp_a_n_instructions = [
+                { n_value: 0x00, a_value: 0x00, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { n_value: 0x00, a_value: 0x00, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { n_value: 0x10, a_value: 0x20, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { n_value: 0xFF, a_value: 0x00, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::HALF_CARRY_FLAG], flags_unset: [CPU::ZERO_FLAG] },
+                { n_value: 0x0F, a_value: 0x1F, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { n_value: 0xF0, a_value: 0xFF, flags_set: [CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { n_value: 0x01, a_value: 0x01, flags_set: [CPU::ZERO_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::HALF_CARRY_FLAG, CPU::CARRY_FLAG] },
+                { n_value: 0x80, a_value: 0x00, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG] },
+                { n_value: 0x3F, a_value: 0x40, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+            ]
+            cp_a_n_instructions = []
+
+            cp_a_n_instructions.each do |inst|
+                describe "CP A, n" do
+                    let(:data) { [0xFE, inst[:n_value]] }
+
+                    before do
+                        subject.registers[:a] = inst[:a_value]
+                    end
+
+                    it "should not change value of A" do
+                        subject.instruction data
+
+                        _(subject.registers[:a]).must_equal(inst[:a_value])
+                    end
+
+                    it "should set the flags #{inst[:flags_set]}" do
+                        subject.instruction data
+
+                        inst[:flags_set].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                        end
+                    end
+
+                    it "should unset the flags #{inst[:flags_unset]}" do
+                        subject.instruction data
+
+                        inst[:flags_unset].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal false
+                        end
+                    end
+
+                    it 'should return correct amount of cycles used' do
+                      cycles = subject.instruction data
+
+                      _(cycles).must_equal 8
+                    end
+
+                    it 'should update the program_counter correctly' do
+                        subject.program_counter = 0x100
+
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal(0x102)
+                    end
+                end
+            end
         end
     end
 end
