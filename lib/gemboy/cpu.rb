@@ -395,10 +395,54 @@ module Gemboy
                     inc_r(:l)
                 when 0x34
                     inc_hl
+                when 0x3D
+                    dec_r(:a)
+                when 0x05
+                    dec_r(:b)
+                when 0x0D
+                    dec_r(:c)
+                when 0x15
+                    dec_r(:d)
+                when 0x1D
+                    dec_r(:e)
+                when 0x25
+                    dec_r(:h)
+                when 0x2D
+                    dec_r(:l)
+                when 0x35
+                    dec_hl
             end
         end
 
         private
+
+        def dec_r(r)
+            result = (@registers[r] - 1) & 0xFF
+
+            set_flag(SUBTRACT_FLAG)
+            set_flag(ZERO_FLAG) if result == 0x00
+            set_flag(HALF_CARRY_FLAG) if ((@registers[r] & 0x0F) == 0x00) && (result & 0x0F == 0x0F) && result != 0xFF && result != 0x00
+
+            @registers[r] = result
+
+            @program_counter += 1
+
+            return 4
+        end
+
+        def dec_hl
+            result = (@memory[hl] - 1) & 0xFF
+
+            set_flag(SUBTRACT_FLAG)
+            set_flag(ZERO_FLAG) if result == 0x00
+            set_flag(HALF_CARRY_FLAG) if ((@memory[hl] & 0x0F) == 0x00) && (result & 0x0F == 0x0F) && result != 0xFF && result != 0x00
+
+            @memory[hl] = result
+
+            @program_counter += 1
+
+            return 12
+        end
 
         def inc_hl
             result = (@memory[hl] + 1) & 0xFF
