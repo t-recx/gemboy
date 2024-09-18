@@ -411,10 +411,83 @@ module Gemboy
                     dec_r(:l)
                 when 0x35
                     dec_hl
+                when 0x27
+                    daa
+                when 0x2F
+                    cpl
+                when 0x37
+                    scf
+                when 0x3F
+                    ccf
             end
         end
 
         private
+
+        def ccf
+            if flag_set?(CARRY_FLAG)
+                clear_flag(CARRY_FLAG)
+            else
+                set_flag(CARRY_FLAG)
+            end
+
+            clear_flag(HALF_CARRY_FLAG)
+            clear_flag(SUBTRACT_FLAG)
+
+            @program_counter += 1
+
+            return 4
+        end
+
+        def scf
+            set_flag(CARRY_FLAG)
+
+            clear_flag(HALF_CARRY_FLAG)
+            clear_flag(SUBTRACT_FLAG)
+
+            @program_counter += 1
+
+            return 4
+        end
+
+        def cpl
+            @registers[:a] = ~@registers[:a]
+
+            @registers[:a] &= 0xFF
+
+            set_flag(HALF_CARRY_FLAG)
+            set_flag(SUBTRACT_FLAG)
+
+            @program_counter += 1
+
+            return 4
+        end
+
+        def daa
+            offset = 0
+
+            if (!flag_set?(SUBTRACT_FLAG) && (@registers[:a] & 0xF) > 0x09) || flag_set?(HALF_CARRY_FLAG)
+               offset |= 0x06
+            end
+
+            if (!flag_set?(SUBTRACT_FLAG) && @registers[:a] > 0x99) || flag_set?(CARRY_FLAG)
+                offset |= 0x60
+                set_flag(CARRY_FLAG)
+            end
+
+            if flag_set?(SUBTRACT_FLAG)
+                @registers[:a] = (@registers[:a] - offset) & 0xFF
+            else
+                @registers[:a] = (@registers[:a] + offset) & 0xFF
+            end
+
+            clear_flag(HALF_CARRY_FLAG)
+            set_flag(ZERO_FLAG) if @registers[:a] == 0x00
+
+            @program_counter += 1
+
+            return 4
+        end
 
         def dec_r(r)
             result = (@registers[r] - 1) & 0xFF

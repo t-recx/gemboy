@@ -3475,6 +3475,241 @@ describe CPU do
                     end
                 end
             end
+
+            daa_instructions = [
+                { a_value: 0x110, expected_a_value_after_op: 0x70, before_op_flags_set: [CPU::CARRY_FLAG], after_op_expected_flags_set: [CPU::CARRY_FLAG], after_op_expected_flags_unset: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::ZERO_FLAG] },
+                { a_value: 0x11, expected_a_value_after_op: 0x17, before_op_flags_set: [CPU::HALF_CARRY_FLAG], after_op_expected_flags_set: [], after_op_expected_flags_unset: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG, CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { a_value: 0x0D, expected_a_value_after_op: 0x07, before_op_flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], after_op_expected_flags_set: [CPU::SUBTRACT_FLAG], after_op_expected_flags_unset: [CPU::HALF_CARRY_FLAG, CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { a_value: 0xE4, expected_a_value_after_op: 0x84, before_op_flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], after_op_expected_flags_set: [CPU::SUBTRACT_FLAG, CPU::CARRY_FLAG], after_op_expected_flags_unset: [CPU::HALF_CARRY_FLAG, CPU::ZERO_FLAG] },
+            ]
+
+            daa_instructions.each do |inst|
+                describe "DAA" do
+                    let(:data) { [0x27] }
+
+                    before do
+                        subject.registers[:a] = inst[:a_value]
+
+                        inst[:before_op_flags_set].each do |flag|
+                            subject.registers[:f] |= flag
+                        end
+                    end
+
+                    it "should leave subtract flag unaffected" do
+                        subject.registers[:f] |= CPU::SUBTRACT_FLAG
+
+                        subject.instruction data
+
+                        _(Utils.flag_set?(subject.registers[:f], CPU::SUBTRACT_FLAG)).must_equal true
+
+                        subject.registers[:f] &= ~CPU::SUBTRACT_FLAG
+
+                        subject.instruction data
+
+                        _(Utils.flag_set?(subject.registers[:f], CPU::SUBTRACT_FLAG)).must_equal false
+                    end
+
+                    it "should DAA the value in A" do
+                        subject.instruction data
+
+                        _(subject.registers[:a]).must_equal(inst[:expected_a_value_after_op])
+                    end
+
+                    it "should set the flags #{inst[:after_op_expected_flags_set]}" do
+                        subject.instruction data
+
+                        inst[:after_op_expected_flags_set].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                        end
+                    end
+
+                    it "should unset the flags #{inst[:after_op_expected_flags_unset]}" do
+                        subject.instruction data
+
+                        inst[:after_op_expected_flags_unset].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal false
+                        end
+                    end
+
+                    it 'should return correct amount of cycles used' do
+                      cycles = subject.instruction data
+
+                      _(cycles).must_equal 4
+                    end
+
+                    it 'should update the program_counter correctly' do
+                        subject.program_counter = 0x100
+
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal(0x101)
+                    end
+                end
+            end
+
+            cpl_instructions = [
+                { a_value: 0x4F, expected_a_value_after_op: 0xB0, before_op_flags_set: [], after_op_expected_flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], after_op_expected_flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { a_value: 0x00, expected_a_value_after_op: 0xFF, before_op_flags_set: [], after_op_expected_flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], after_op_expected_flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { a_value: 0x01, expected_a_value_after_op: 0xFE, before_op_flags_set: [], after_op_expected_flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], after_op_expected_flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { a_value: 0x7F, expected_a_value_after_op: 0x80, before_op_flags_set: [], after_op_expected_flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], after_op_expected_flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { a_value: 0x80, expected_a_value_after_op: 0x7F, before_op_flags_set: [], after_op_expected_flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], after_op_expected_flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { a_value: 0xA5, expected_a_value_after_op: 0x5A, before_op_flags_set: [], after_op_expected_flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], after_op_expected_flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                { a_value: 0xFF, expected_a_value_after_op: 0x00, before_op_flags_set: [], after_op_expected_flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], after_op_expected_flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+            ]
+
+            cpl_instructions.each do |inst|
+                describe "CPL" do
+                    let(:data) { [0x2F] }
+
+                    before do
+                        subject.registers[:a] = inst[:a_value]
+
+                        inst[:before_op_flags_set].each do |flag|
+                            subject.registers[:f] |= flag
+                        end
+                    end
+
+                    it "should CPL the value in A" do
+                        subject.instruction data
+
+                        _(subject.registers[:a]).must_equal(inst[:expected_a_value_after_op])
+                    end
+
+                    it "should set the flags #{inst[:after_op_expected_flags_set]}" do
+                        subject.instruction data
+
+                        inst[:after_op_expected_flags_set].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                        end
+                    end
+
+                    it "should unset the flags #{inst[:after_op_expected_flags_unset]}" do
+                        subject.instruction data
+
+                        inst[:after_op_expected_flags_unset].each do |flag|
+                            _(Utils.flag_set?(subject.registers[:f], flag)).must_equal false
+                        end
+                    end
+
+                    it 'should return correct amount of cycles used' do
+                      cycles = subject.instruction data
+
+                      _(cycles).must_equal 4
+                    end
+
+                    it 'should update the program_counter correctly' do
+                        subject.program_counter = 0x100
+
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal(0x101)
+                    end
+                end
+            end
+
+            describe "SCF" do
+                let(:data) { [0x37] }
+
+                it 'should always set carry flag' do 
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::CARRY_FLAG)).must_equal true
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::CARRY_FLAG)).must_equal true
+                end
+                
+                it 'should always unset half carry flag' do 
+                    subject.registers[:f] |= CPU::HALF_CARRY_FLAG
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::HALF_CARRY_FLAG)).must_equal false
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::HALF_CARRY_FLAG)).must_equal false
+                end
+                
+                it 'should always unset subtract flag' do 
+                    subject.registers[:f] |= CPU::SUBTRACT_FLAG
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::SUBTRACT_FLAG)).must_equal false
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::SUBTRACT_FLAG)).must_equal false
+                end
+                
+                it 'should return correct amount of cycles used' do
+                  cycles = subject.instruction data
+
+                  _(cycles).must_equal 4
+                end
+
+                it 'should update the program_counter correctly' do
+                    subject.program_counter = 0x100
+
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal(0x101)
+                end
+            end
+
+            describe "CCF" do
+                let(:data) { [0x3F] }
+
+                it 'should always flip carry flag' do 
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::CARRY_FLAG)).must_equal true
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::CARRY_FLAG)).must_equal false
+                end
+                
+                it 'should always unset half carry flag' do 
+                    subject.registers[:f] |= CPU::HALF_CARRY_FLAG
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::HALF_CARRY_FLAG)).must_equal false
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::HALF_CARRY_FLAG)).must_equal false
+                end
+                
+                it 'should always unset subtract flag' do 
+                    subject.registers[:f] |= CPU::SUBTRACT_FLAG
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::SUBTRACT_FLAG)).must_equal false
+
+                    subject.instruction data
+
+                    _(Utils.flag_set?(subject.registers[:f], CPU::SUBTRACT_FLAG)).must_equal false
+                end
+                
+                it 'should return correct amount of cycles used' do
+                  cycles = subject.instruction data
+
+                  _(cycles).must_equal 4
+                end
+
+                it 'should update the program_counter correctly' do
+                    subject.program_counter = 0x100
+
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal(0x101)
+                end
+            end
         end
     end
 end
