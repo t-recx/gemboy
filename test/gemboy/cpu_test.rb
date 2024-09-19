@@ -9,6 +9,173 @@ describe CPU do
     subject { CPU.new memory }
 
     describe :instruction do
+        describe 'call' do
+            describe 'CALL nn' do
+                let(:data) { [0xCD, 0x56, 0x34] }
+
+                before do
+                    subject.program_counter = 0x1000
+                end
+
+                it 'should push the program counter to the stack' do
+                    subject.instruction data 
+
+                    _(memory[0xFFFC]).must_equal(0x03)
+                    _(memory[0xFFFD]).must_equal(0x10)
+                    _(subject.sp).must_equal(0xFFFC) 
+                end
+
+                it 'should set the program counter to specified address' do
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal 0x3456
+                end
+
+                it 'should return correct amount of cycles used' do
+                    cycles = subject.instruction data
+
+                    _(cycles).must_equal(24)
+                end
+            end
+
+            call_cc_nn_instructions = [
+                { 
+                    opcode: 0xC4, # condition = zero is not set
+                    n1: 0x34,
+                    n2: 0x12,
+                    program_counter: 0x2000, 
+                    flags_set: [CPU::ZERO_FLAG], 
+                    expected_cycles: 12, 
+                    expected_program_counter: 0x2003, 
+                    expected_sp: 0xFFFE, 
+                    expected_memory_FFFC: nil,
+                    expected_memory_FFFD: nil
+                },
+                { 
+                    opcode: 0xC4, # condition = zero is not set
+                    n1: 0x34,
+                    n2: 0x12,
+                    program_counter: 0x2000, 
+                    flags_set: [], 
+                    expected_cycles: 24, 
+                    expected_program_counter: 0x1234, 
+                    expected_sp: 0xFFFC, 
+                    expected_memory_FFFC: 0x03,
+                    expected_memory_FFFD: 0x20
+                },
+                { 
+                    opcode: 0xCC, # condition = zero is set
+                    n1: 0x41,
+                    n2: 0x20,
+                    program_counter: 0x1004, 
+                    flags_set: [CPU::ZERO_FLAG], 
+                    expected_cycles: 24, 
+                    expected_program_counter: 0x2041, 
+                    expected_sp: 0xFFFC, 
+                    expected_memory_FFFC: 0x07,
+                    expected_memory_FFFD: 0x10
+                },
+                { 
+                    opcode: 0xCC, # condition = zero is set
+                    n1: 0x34,
+                    n2: 0x12,
+                    program_counter: 0x4000, 
+                    flags_set: [], 
+                    expected_cycles: 12, 
+                    expected_program_counter: 0x4003, 
+                    expected_sp: 0xFFFE, 
+                    expected_memory_FFFC: nil,
+                    expected_memory_FFFD: nil
+                },
+                { 
+                    opcode: 0xD4, # condition = carry not set
+                    n1: 0x34,
+                    n2: 0x12,
+                    program_counter: 0x2000, 
+                    flags_set: [CPU::CARRY_FLAG], 
+                    expected_cycles: 12, 
+                    expected_program_counter: 0x2003, 
+                    expected_sp: 0xFFFE, 
+                    expected_memory_FFFC: nil,
+                    expected_memory_FFFD: nil
+                },
+                { 
+                    opcode: 0xD4, # condition = carry not set
+                    n1: 0x34,
+                    n2: 0x12,
+                    program_counter: 0x2000, 
+                    flags_set: [], 
+                    expected_cycles: 24, 
+                    expected_program_counter: 0x1234, 
+                    expected_sp: 0xFFFC, 
+                    expected_memory_FFFC: 0x03,
+                    expected_memory_FFFD: 0x20
+                },
+                { 
+                    opcode: 0xDC, # condition = carry is set
+                    n1: 0x41,
+                    n2: 0x20,
+                    program_counter: 0x1004, 
+                    flags_set: [CPU::CARRY_FLAG], 
+                    expected_cycles: 24, 
+                    expected_program_counter: 0x2041, 
+                    expected_sp: 0xFFFC, 
+                    expected_memory_FFFC: 0x07,
+                    expected_memory_FFFD: 0x10
+                },
+                { 
+                    opcode: 0xDC, # condition = carry is set
+                    n1: 0x34,
+                    n2: 0x12,
+                    program_counter: 0x4000, 
+                    flags_set: [], 
+                    expected_cycles: 12, 
+                    expected_program_counter: 0x4003, 
+                    expected_sp: 0xFFFE, 
+                    expected_memory_FFFC: nil,
+                    expected_memory_FFFD: nil
+                },
+            ]
+
+            call_cc_nn_instructions.each do |inst|
+                describe 'CALL cc, nn' do
+                    let(:data) { [inst[:opcode], inst[:n1], inst[:n2]] }
+
+                    before do
+                        subject.program_counter = inst[:program_counter]
+
+                        inst[:flags_set].each do |flag|
+                            subject.registers[:f] |= flag
+                        end
+                    end
+
+                    it 'should update the program_counter correctly' do
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal(inst[:expected_program_counter])
+                    end
+
+                    it 'should update the memory correctly' do
+                        subject.instruction data
+
+                        _(subject.sp).must_equal(inst[:expected_sp])
+                        if (inst[:expected_memory_FFFC])
+                            _(memory[0xFFFC]).must_equal(inst[:expected_memory_FFFC])
+                        end
+                        if (inst[:expected_memory_FFFD])
+                            _(memory[0xFFFD]).must_equal(inst[:expected_memory_FFFD])
+                        end
+                    end
+                
+                    it 'should return correct amount of cycles used' do
+                      cycles = subject.instruction data
+
+                      _(cycles).must_equal inst[:expected_cycles]
+                    end
+                end
+            end
+        end
+
         describe 'jump' do
             before do
                 subject.program_counter = 0x00

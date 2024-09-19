@@ -29,30 +29,30 @@ module Gemboy
             @memory = memory || Memory.new
         end
 
-        def instruction(data)
-            case data[0]
+        def instruction(data, i = 0)
+            case data[i]
                 when 0xC3
-                    jp(data[1..])
+                    jp(data[i + 1, 2])
                 when 0xE9
                     jp_hl
                 when 0x18
-                    jr(data[1])
+                    jr(data[i + 1])
                 when 0xC2
-                    jp_cc(data[1..], ZERO_FLAG, false)
+                    jp_cc(data[i + 1, 2], ZERO_FLAG, false)
                 when 0xCA
-                    jp_cc(data[1..], ZERO_FLAG, true)
+                    jp_cc(data[i + 1, 2], ZERO_FLAG, true)
                 when 0xD2
-                    jp_cc(data[1..], CARRY_FLAG, false)
+                    jp_cc(data[i + 1, 2], CARRY_FLAG, false)
                 when 0xDA
-                    jp_cc(data[1..], CARRY_FLAG, true)
+                    jp_cc(data[i + 1, 2], CARRY_FLAG, true)
                 when 0x20
-                    jr_cc(data[1], ZERO_FLAG, false)    
+                    jr_cc(data[i + 1], ZERO_FLAG, false)    
                 when 0x28
-                    jr_cc(data[1], ZERO_FLAG, true)    
+                    jr_cc(data[i + 1], ZERO_FLAG, true)    
                 when 0x30
-                    jr_cc(data[1], CARRY_FLAG, false)
+                    jr_cc(data[i + 1], CARRY_FLAG, false)
                 when 0x38
-                    jr_cc(data[1], CARRY_FLAG, true)
+                    jr_cc(data[i + 1], CARRY_FLAG, true)
                 when 0x78
                     ld(:a, :b)
                 when 0x79
@@ -138,19 +138,19 @@ module Gemboy
                 when 0x6C
                     ld(:l, :h)
                 when 0x3E
-                    ld_r_n(:a, data[1])
+                    ld_r_n(:a, data[i + 1])
                 when 0x06
-                    ld_r_n(:b, data[1])
+                    ld_r_n(:b, data[i + 1])
                 when 0x0E
-                    ld_r_n(:c, data[1])
+                    ld_r_n(:c, data[i + 1])
                 when 0x16
-                    ld_r_n(:d, data[1])
+                    ld_r_n(:d, data[i + 1])
                 when 0x1E
-                    ld_r_n(:e, data[1])
+                    ld_r_n(:e, data[i + 1])
                 when 0x26
-                    ld_r_n(:h, data[1])
+                    ld_r_n(:h, data[i + 1])
                 when 0x2E
-                    ld_r_n(:l, data[1])
+                    ld_r_n(:l, data[i + 1])
                 when 0x7E
                     ld_r_hl(:a)
                 when 0x46
@@ -180,7 +180,7 @@ module Gemboy
                 when 0x75
                     ld_hl_r(:l)
                 when 0x36
-                    ld_hl_n(data[1])
+                    ld_hl_n(data[i + 1])
                 when 0x0A
                     ld_a_bc
                 when 0x1A
@@ -190,9 +190,9 @@ module Gemboy
                 when 0x12
                     ld_de_a
                 when 0xFA
-                    ld_a_nn(data[1..])
+                    ld_a_nn(data[i + 1, 2])
                 when 0xEA
-                    ld_nn_a(data[1..])
+                    ld_nn_a(data[i + 1, 2])
                 when 0xF2
                     ld_a_c
                 when 0xE2
@@ -206,19 +206,19 @@ module Gemboy
                 when 0x22
                     ldi_hl_a
                 when 0x08
-                    ld_nn_sp(data[1..])
+                    ld_nn_sp(data[i + 1, 2])
                 when 0xF9
                     ld_sp_hl
                 when 0x01
-                    ld_rr_nn(data[1..], :b, :c)
+                    ld_rr_nn(data[i + 1, 2], :b, :c)
                 when 0x11
-                    ld_rr_nn(data[1..], :d, :e)
+                    ld_rr_nn(data[i + 1, 2], :d, :e)
                 when 0x21
-                    ld_rr_nn(data[1..], :h, :l)
+                    ld_rr_nn(data[i + 1, 2], :h, :l)
                 when 0x31
-                    ld_sp_nn(data[1..])
+                    ld_sp_nn(data[i + 1, 2])
                 when 0xF8
-                    ldhl_sp_n(data[1]) 
+                    ldhl_sp_n(data[i + 1]) 
                 when 0xC5
                     push_rr(@registers[:b], @registers[:c])
                 when 0xD5
@@ -252,7 +252,7 @@ module Gemboy
                 when 0x86
                     add_a_hl
                 when 0xC6
-                    add_a_n(data[1])
+                    add_a_n(data[i + 1])
                 when 0x8F
                     adc_a_r(:a)
                 when 0x88
@@ -270,7 +270,7 @@ module Gemboy
                 when 0x8E
                     adc_a_hl
                 when 0xCE
-                    adc_a_n(data[1])
+                    adc_a_n(data[i + 1])
                 when 0x97
                     sub_a_r(:a)
                 when 0x90
@@ -288,7 +288,7 @@ module Gemboy
                 when 0x96
                     sub_a_hl
                 when 0xD6
-                    sub_n(data[1])
+                    sub_n(data[i + 1])
                 when 0x9F
                     sbc_a_r(:a)
                 when 0x98
@@ -306,7 +306,7 @@ module Gemboy
                 when 0x9E
                     sbc_a_hl
                 when 0xDE
-                    sbc_a_n(data[1])
+                    sbc_a_n(data[i + 1])
                 when 0xA7
                     and_a_r(:a)
                 when 0xA0
@@ -324,7 +324,7 @@ module Gemboy
                 when 0xA6
                     and_a_hl
                 when 0xE6
-                    and_a_n(data[1])
+                    and_a_n(data[i + 1])
                 when 0xB7
                     or_a_r(:a)
                 when 0xB0
@@ -342,7 +342,7 @@ module Gemboy
                 when 0xB6
                     or_a_hl
                 when 0xF6
-                    or_a_n(data[1])
+                    or_a_n(data[i + 1])
                 when 0xA8
                     xor_a_r(:b)
                 when 0xA9
@@ -360,7 +360,7 @@ module Gemboy
                 when 0xAE
                     xor_a_hl
                 when 0xEE
-                    xor_a_n(data[1])
+                    xor_a_n(data[i + 1])
                 when 0xBF
                     cp_a_r(:a)
                 when 0xB8
@@ -378,7 +378,7 @@ module Gemboy
                 when 0xBE
                     cp_a_hl
                 when 0xFE
-                    cp_a_n(data[1])
+                    cp_a_n(data[i + 1])
                 when 0x3C
                     inc_r(:a)
                 when 0x04
@@ -419,10 +419,59 @@ module Gemboy
                     scf
                 when 0x3F
                     ccf
+                when 0xCD
+                    call_nn(data[i + 1, 2])
+                when 0xC4
+                    call_nz(data[i + 1, 2])
+                when 0xCC
+                    call_z(data[i + 1, 2])
+                when 0xD4
+                    call_nc(data[i + 1, 2])
+                when 0xDC
+                    call_c(data[i + 1, 2])
             end
         end
 
         private
+
+        def call_c(data)
+            call_cond(data, CARRY_FLAG, true)
+        end
+
+        def call_nc(data)
+            call_cond(data, CARRY_FLAG, false)
+        end
+
+        def call_z(data)
+            call_cond(data, ZERO_FLAG, true)
+        end
+
+        def call_nz(data)
+            call_cond(data, ZERO_FLAG, false)
+        end
+
+        def call_cond(data, flag, value)
+            if flag_set?(flag) == value
+                return call_nn(data)
+            else
+                @program_counter += 3
+
+                return 12
+            end
+        end
+
+        def call_nn(data)
+            @sp -= 2
+
+            next_pc = @program_counter + 3
+
+            @memory[@sp] = Utils.get_lo(next_pc)
+            @memory[@sp + 1] = Utils.get_hi(next_pc)
+
+            @program_counter = Utils.get_16bit(data[1], data[0])
+
+            return 24
+        end
 
         def ccf
             if flag_set?(CARRY_FLAG)
