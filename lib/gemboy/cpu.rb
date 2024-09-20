@@ -9,6 +9,7 @@ module Gemboy
         attr_accessor :registers
         attr_accessor :f
         attr_accessor :sp
+        attr_accessor :ime
 
         def initialize(memory = nil)
             @program_counter = 0x00
@@ -25,6 +26,8 @@ module Gemboy
             }
 
             @sp = 0xFFFE
+
+            @ime = false
 
             @memory = memory || Memory.new
         end
@@ -429,10 +432,64 @@ module Gemboy
                     call_nc(data[i + 1, 2])
                 when 0xDC
                     call_c(data[i + 1, 2])
+                when 0xC9
+                    ret
+                when 0xC0
+                    ret_nz
+                when 0xC8
+                    ret_z
+                when 0xD0
+                    ret_nc
+                when 0xD8
+                    ret_c
+                when 0xD9
+                    reti
             end
         end
 
         private
+
+        def reti
+            @ime = true
+
+            ret
+        end
+
+        def ret_nz
+            ret_cond(ZERO_FLAG, false)
+        end
+
+        def ret_z
+            ret_cond(ZERO_FLAG, true)
+        end
+
+        def ret_nc
+            ret_cond(CARRY_FLAG, false)
+        end
+
+        def ret_c
+            ret_cond(CARRY_FLAG, true)
+        end
+
+        def ret_cond(flag, value)
+            if flag_set?(flag) == value
+                ret
+
+                return 20
+            else
+                @program_counter += 1
+
+                return 8
+            end
+        end
+
+        def ret
+            @sp += 2
+            
+            @program_counter = Utils.get_16bit(@memory[@sp - 1], @memory[@sp - 2])
+
+            return 16
+        end
 
         def call_c(data)
             call_cond(data, CARRY_FLAG, true)

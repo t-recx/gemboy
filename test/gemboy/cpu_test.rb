@@ -176,6 +176,129 @@ describe CPU do
             end
         end
 
+        describe 'return' do
+            describe 'RET' do
+                let(:data_setup) { [0xCD, 0x56, 0x34] } # CALL nn instruction
+                let(:data) { [0xC9] }
+
+                before do
+                    subject.program_counter = 0x2130
+
+                    subject.instruction data_setup
+                end
+
+                it 'should pop the value from the stack' do
+                    subject.instruction data
+
+                    _(subject.sp).must_equal(0xFFFE) 
+                end
+
+                it 'should set the program counter to the value on stack' do
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal 0x2133
+                end
+
+                it 'should return correct amount of cycles used' do
+                    cycles = subject.instruction data
+
+                    _(cycles).must_equal(16)
+                end
+            end
+
+            describe 'RETI' do
+                let(:data_setup) { [0xCD, 0x56, 0x34] } # CALL nn instruction
+                let(:data) { [0xD9] }
+
+                before do
+                    subject.program_counter = 0x2130
+
+                    subject.instruction data_setup
+                end
+
+                it 'should pop the value from the stack' do
+                    subject.instruction data
+
+                    _(subject.sp).must_equal(0xFFFE) 
+                end
+
+                it 'should set the program counter to the value on stack' do
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal 0x2133
+                end
+
+                it 'should return correct amount of cycles used' do
+                    cycles = subject.instruction data
+
+                    _(cycles).must_equal(16)
+                end
+
+                it 'should set the ime flag to true' do
+                    subject.ime = false
+
+                    subject.instruction data
+
+                    _(subject.ime).must_equal true
+                end
+
+                it 'should keep the ime flag to true if that is already the case' do
+                    subject.ime = true
+
+                    subject.instruction data
+
+                    _(subject.ime).must_equal true
+                end
+            end
+
+            ret_cc_instructions = [
+                { opcode: 0xC0, program_counter: 0x4000, memory_FFFC: 0x20, memory_FFFD: 0x30, sp: 0xFFFC, flags_set: [], expected_sp: 0xFFFE, expected_program_counter: 0x3020, expected_cycles: 20 },
+                { opcode: 0xC0, program_counter: 0x4000, memory_FFFC: 0x20, memory_FFFD: 0x30, sp: 0xFFFC, flags_set: [CPU::ZERO_FLAG], expected_sp: 0xFFFC, expected_program_counter: 0x4001, expected_cycles: 8 },
+                { opcode: 0xC8, program_counter: 0x4000, memory_FFFC: 0x20, memory_FFFD: 0x30, sp: 0xFFFC, flags_set: [CPU::ZERO_FLAG], expected_sp: 0xFFFE, expected_program_counter: 0x3020, expected_cycles: 20 },
+                { opcode: 0xC8, program_counter: 0x4000, memory_FFFC: 0x20, memory_FFFD: 0x30, sp: 0xFFFC, flags_set: [], expected_sp: 0xFFFC, expected_program_counter: 0x4001, expected_cycles: 8 },
+                { opcode: 0xD0, program_counter: 0x4000, memory_FFFC: 0x20, memory_FFFD: 0x30, sp: 0xFFFC, flags_set: [], expected_sp: 0xFFFE, expected_program_counter: 0x3020, expected_cycles: 20 },
+                { opcode: 0xD0, program_counter: 0x4000, memory_FFFC: 0x20, memory_FFFD: 0x30, sp: 0xFFFC, flags_set: [CPU::CARRY_FLAG], expected_sp: 0xFFFC, expected_program_counter: 0x4001, expected_cycles: 8 },
+                { opcode: 0xD8, program_counter: 0x4000, memory_FFFC: 0x20, memory_FFFD: 0x30, sp: 0xFFFC, flags_set: [CPU::CARRY_FLAG], expected_sp: 0xFFFE, expected_program_counter: 0x3020, expected_cycles: 20 },
+                { opcode: 0xD8, program_counter: 0x4000, memory_FFFC: 0x20, memory_FFFD: 0x30, sp: 0xFFFC, flags_set: [], expected_sp: 0xFFFC, expected_program_counter: 0x4001, expected_cycles: 8 }
+            ]
+
+            ret_cc_instructions.each do |inst|
+                describe 'RET cc' do
+                    let(:data) { [inst[:opcode]] }
+
+                    before do
+                        subject.program_counter = inst[:program_counter]
+
+                        subject.sp = inst[:sp]
+                        memory[0xFFFC] = inst[:memory_FFFC]
+                        memory[0xFFFD] = inst[:memory_FFFD]
+
+                        inst[:flags_set].each do |flag|
+                            subject.registers[:f] |= flag
+                        end
+                    end
+
+                    it 'should set sp to expected value' do
+                        subject.instruction data
+
+                        _(subject.sp).must_equal(inst[:expected_sp]) 
+                    end
+
+                    it 'should set the program counter to expected value' do
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal inst[:expected_program_counter]
+                    end
+
+                    it 'should return correct amount of cycles used' do
+                        cycles = subject.instruction data
+
+                        _(cycles).must_equal(inst[:expected_cycles])
+                    end
+                end
+            end
+        end
+
         describe 'jump' do
             before do
                 subject.program_counter = 0x00
