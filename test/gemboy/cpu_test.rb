@@ -299,6 +299,98 @@ describe CPU do
             end
         end
 
+        describe 'control' do
+            describe 'NOP' do
+                let(:data) { [0x00] }
+
+                before do
+                    subject.program_counter = 0x2001
+                end
+
+                it 'should set the program counter to expected value' do
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal 0x2002
+                end
+
+                it 'should return correct amount of cycles used' do
+                    cycles = subject.instruction data
+
+                    _(cycles).must_equal(4)
+                end
+            end
+
+            describe 'DI' do
+                let(:data) { [0xF3] }
+
+                before do
+                    subject.program_counter = 0x1001
+                end
+
+                it 'should set ime to false, but only after the next instruction executes' do
+                    _(subject.disable_ime_next).must_equal false
+                    subject.ime = true
+
+                    subject.instruction data
+
+                    _(subject.ime).must_equal true
+                    _(subject.disable_ime_next).must_equal true
+
+                    subject.instruction 0x00
+
+                    _(subject.ime).must_equal false
+                    _(subject.disable_ime_next).must_equal false
+                end
+
+                it 'should set the program counter to expected value' do
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal 0x1002
+                end
+
+                it 'should return correct amount of cycles used' do
+                    cycles = subject.instruction data
+
+                    _(cycles).must_equal(4)
+                end
+            end
+
+            describe 'EI' do
+                let(:data) { [0xFB] }
+
+                before do
+                    subject.program_counter = 0x1001
+                end
+
+                it 'should set ime to true, but only after the next instruction executes' do
+                    _(subject.enable_ime_next).must_equal false
+                    subject.ime = false
+
+                    subject.instruction data
+
+                    _(subject.ime).must_equal false
+                    _(subject.enable_ime_next).must_equal true
+
+                    subject.instruction 0x00
+
+                    _(subject.ime).must_equal true
+                    _(subject.enable_ime_next).must_equal false
+                end
+
+                it 'should set the program counter to expected value' do
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal 0x1002
+                end
+
+                it 'should return correct amount of cycles used' do
+                    cycles = subject.instruction data
+
+                    _(cycles).must_equal(4)
+                end
+            end
+        end
+
         describe 'reset' do
             rst_instructions = [
                 { opcode: 0xC7, program_counter: 0x1234, expected_program_counter: 0x0000, expected_memory_FFFC: 0x35, expected_memory_FFFD: 0x12 },

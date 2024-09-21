@@ -10,6 +10,8 @@ module Gemboy
         attr_accessor :f
         attr_accessor :sp
         attr_accessor :ime
+        attr_accessor :disable_ime_next
+        attr_accessor :enable_ime_next
 
         def initialize(memory = nil)
             @program_counter = 0x00
@@ -28,12 +30,34 @@ module Gemboy
             @sp = 0xFFFE
 
             @ime = false
+            @disable_ime_next = false
+            @enable_ime_next = false
 
             @memory = memory || Memory.new
         end
 
         def instruction(data, i = 0)
-            case data[i]
+            ime_after = nil
+
+            if @disable_ime_next
+                ime_after = false
+                @disable_ime_next = false
+            end
+
+            if @enable_ime_next
+                ime_after = true
+                @enable_ime_next = false
+            end
+
+            cycles_instruction = case data[i]
+                when 0x00
+                    nop
+                # TODO: has interactions with interrupts
+                #when 0x10
+                    #stop
+                # TODO: has interactions with interrupts
+                #when 0x76
+                    #halt
                 when 0xC3
                     jp(data[i + 1, 2])
                 when 0xE9
@@ -460,10 +484,42 @@ module Gemboy
                     rst 0x0030
                 when 0xFF
                     rst 0x0038
+                when 0xF3
+                    di
+                when 0xFB
+                    ei
             end
+
+            unless ime_after.nil?
+                @ime = ime_after
+            end
+
+            return cycles_instruction
         end
 
         private
+
+        def ei
+            @program_counter += 1
+
+            @enable_ime_next = true
+
+            return 4
+        end
+
+        def di
+            @program_counter += 1
+
+            @disable_ime_next = true
+
+            return 4
+        end
+
+        def nop
+            @program_counter += 1
+
+            return 4
+        end
 
         def rst(n)
             @sp -= 2
