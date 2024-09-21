@@ -1125,6 +1125,66 @@ describe CPU do
                 end
             end
 
+            describe 'ld (0xFF00 + n), A' do
+                let(:a_value) { 0xBE }
+                let(:n_value) { 0x0A }
+                let(:data) { [0xE0, n_value] }
+
+                before do 
+                    subject.registers[:a] = a_value
+                end
+
+                it "should load value from register A into memory address 0xFF00 + n" do
+                    subject.instruction data
+
+                    _(memory[0xFF00 + n_value]).must_equal a_value
+                end
+
+                it 'should return correct amount of cycles used' do
+                  cycles = subject.instruction data
+
+                  _(cycles).must_equal 12
+                end
+
+                it 'should update the program_counter correctly' do
+                    subject.program_counter = 0x100
+
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal(0x102)
+                end
+            end
+
+            describe 'ld A, (0xFF00 + n)' do
+                let(:memory_value) { 0xF2 }
+                let(:n_value) { 0x1C }
+                let(:data) { [0xF0, n_value] }
+
+                before do 
+                    memory[0xFF1C] = memory_value
+                end
+
+                it "should load value from memory address 0xFF00 + n into register A" do
+                    subject.instruction data
+
+                    _(subject.registers[:a]).must_equal memory_value
+                end
+
+                it 'should return correct amount of cycles used' do
+                  cycles = subject.instruction data
+                  
+                  _(cycles).must_equal 12
+                end
+
+                it 'should update the program_counter correctly' do
+                    subject.program_counter = 0x100
+
+                    subject.instruction data
+
+                    _(subject.program_counter).must_equal(0x102)
+                end
+            end
+
             describe "ld A, (BC)" do
                 let(:memory_value) { 0xF2 }
                 let(:bc) { 0x1090 }
@@ -4137,6 +4197,129 @@ describe CPU do
                     subject.instruction data
 
                     _(subject.program_counter).must_equal(0x101)
+                end
+            end
+        end
+
+        describe 'bit manipulation' do
+            describe 'rotate and shift' do
+                rlc_r_instructions = [
+                    { opcodes: [0xCB, 0x07], source: :a, source_value: 0b00000000, expected_source_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG] },
+                    { opcodes: [0xCB, 0x00], source: :b, source_value: 0b11001010, expected_source_value_after: 0b10010101, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { opcodes: [0xCB, 0x01], source: :c, source_value: 0b11111111, expected_source_value_after: 0b11111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { opcodes: [0xCB, 0x02], source: :d, source_value: 0b01010101, expected_source_value_after: 0b10101010, expected_flags_set_after: [] },
+                    { opcodes: [0xCB, 0x03], source: :e, source_value: 0b10000000, expected_source_value_after: 0b00000001, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { opcodes: [0xCB, 0x04], source: :h, source_value: 0b00000001, expected_source_value_after: 0b00000010, expected_flags_set_after: [] },
+                    { opcodes: [0xCB, 0x05], source: :l, source_value: 0b11110000, expected_source_value_after: 0b11100001, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                ]
+
+                rlc_r_instructions.each do |inst|
+                    describe 'RLC r' do
+                        let(:data) { inst[:opcodes] }
+
+                        before do
+                            subject.registers[inst[:source]] = inst[:source_value]
+                        end
+
+                        it "should rotate value in source" do
+                            subject.instruction data
+
+                            _(subject.registers[inst[:source]]).must_equal(inst[:expected_source_value_after])
+                        end
+
+                        it "should set the flags #{inst[:expected_flags_set_after]}" do
+                            subject.instruction data
+
+                            inst[:expected_flags_set_after].each do |flag|
+                                _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                            end
+                        end
+
+                        it 'should clear half-carry and subtract flags' do
+                            subject.registers[:f] |= CPU::HALF_CARRY_FLAG
+                            subject.registers[:f] |= CPU::SUBTRACT_FLAG
+
+                            subject.instruction data
+
+                            _(Utils.flag_set?(subject.registers[:f], CPU::HALF_CARRY_FLAG)).must_equal false
+                            _(Utils.flag_set?(subject.registers[:f], CPU::SUBTRACT_FLAG)).must_equal false
+                        end
+
+                        it 'should return correct amount of cycles used' do
+                          cycles = subject.instruction data
+
+                          _(cycles).must_equal 8
+                        end
+
+                        it 'should update the program_counter correctly' do
+                            subject.program_counter = 0x100
+
+                            subject.instruction data
+
+                            _(subject.program_counter).must_equal(0x102)
+                        end
+                    end
+                end
+
+                rlc_hl_instructions = [
+                    { opcodes: [0xCB, 0x06], memory_address: 0xFF00, memory_value: 0b00000000, expected_memory_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG] },
+                    { opcodes: [0xCB, 0x06], memory_address: 0xFF01, memory_value: 0b11001010, expected_memory_value_after: 0b10010101, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { opcodes: [0xCB, 0x06], memory_address: 0xFA00, memory_value: 0b11111111, expected_memory_value_after: 0b11111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { opcodes: [0xCB, 0x06], memory_address: 0xF020, memory_value: 0b01010101, expected_memory_value_after: 0b10101010, expected_flags_set_after: [] },
+                    { opcodes: [0xCB, 0x06], memory_address: 0xFE02, memory_value: 0b10000000, expected_memory_value_after: 0b00000001, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { opcodes: [0xCB, 0x06], memory_address: 0xAFC0, memory_value: 0b00000001, expected_memory_value_after: 0b00000010, expected_flags_set_after: [] },
+                    { opcodes: [0xCB, 0x06], memory_address: 0x2211, memory_value: 0b11110000, expected_memory_value_after: 0b11100001, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                ]
+
+                rlc_hl_instructions.each do |inst|
+                    describe 'RLC (HL)' do
+                        let(:data) { inst[:opcodes] }
+
+                        before do
+                            memory[inst[:memory_address]] = inst[:memory_value]
+
+                            subject.registers[:h] = Utils.get_hi(inst[:memory_address])
+                            subject.registers[:l] = Utils.get_lo(inst[:memory_address])
+                        end
+
+                        it "should rotate value in (HL)" do
+                            subject.instruction data
+
+                            _(memory[inst[:memory_address]]).must_equal(inst[:expected_memory_value_after])
+                        end
+
+                        it "should set the flags #{inst[:expected_flags_set_after]}" do
+                            subject.instruction data
+
+                            inst[:expected_flags_set_after].each do |flag|
+                                _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                            end
+                        end
+
+                        it 'should clear half-carry and subtract flags' do
+                            subject.registers[:f] |= CPU::HALF_CARRY_FLAG
+                            subject.registers[:f] |= CPU::SUBTRACT_FLAG
+
+                            subject.instruction data
+
+                            _(Utils.flag_set?(subject.registers[:f], CPU::HALF_CARRY_FLAG)).must_equal false
+                            _(Utils.flag_set?(subject.registers[:f], CPU::SUBTRACT_FLAG)).must_equal false
+                        end
+
+                        it 'should return correct amount of cycles used' do
+                          cycles = subject.instruction data
+
+                          _(cycles).must_equal 16
+                        end
+
+                        it 'should update the program_counter correctly' do
+                            subject.program_counter = 0x100
+
+                            subject.instruction data
+
+                            _(subject.program_counter).must_equal(0x102)
+                        end
+                    end
                 end
             end
         end

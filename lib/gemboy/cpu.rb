@@ -246,6 +246,10 @@ module Gemboy
                     ld_sp_nn(data[i + 1, 2])
                 when 0xF8
                     ldhl_sp_n(data[i + 1]) 
+                when 0xE0
+                    ld_0xFF00_n_a(data[i + 1])
+                when 0xF0
+                    ld_a_0xFF00_n(data[i + 1])
                 when 0xC5
                     push_rr(@registers[:b], @registers[:c])
                 when 0xD5
@@ -488,6 +492,25 @@ module Gemboy
                     di
                 when 0xFB
                     ei
+                when 0xCB
+                    case data[i + 1]
+                        when 0x07
+                            rlc_r(:a)
+                        when 0x00
+                            rlc_r(:b)
+                        when 0x01
+                            rlc_r(:c)
+                        when 0x02
+                            rlc_r(:d)
+                        when 0x03
+                            rlc_r(:e)
+                        when 0x04
+                            rlc_r(:h)
+                        when 0x05
+                            rlc_r(:l)
+                        when 0x06
+                            rlc_hl
+                    end
             end
 
             unless ime_after.nil?
@@ -498,6 +521,36 @@ module Gemboy
         end
 
         private
+
+        def rlc_r(r)
+            @registers[r] = _rlc_n(@registers[r])
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def rlc_hl
+            @memory[hl] = _rlc_n(@memory[hl])
+
+            @program_counter += 2
+
+            return 16
+        end
+
+        def _rlc_n(n)
+            original_value = n
+            new_value = n
+
+            new_value = ((original_value << 1) | (original_value >> 7))
+            new_value &= 0xFF
+
+            reset_flags
+            set_flag(ZERO_FLAG) if new_value == 0
+            set_flag(CARRY_FLAG) if (original_value & 0x80) != 0
+
+            new_value
+        end
 
         def ei
             @program_counter += 1
@@ -1052,6 +1105,22 @@ module Gemboy
             set_flag(ZERO_FLAG) if result & 0xFF == 0x00
             set_flag(HALF_CARRY_FLAG) if ((o1 & 0x0F) - (o2 & 0x0F) - carry) < 0
             set_flag(CARRY_FLAG) if result < 0
+        end
+
+        def ld_a_0xFF00_n(n)
+            @registers[:a] = @memory[0xFF00 + n]
+
+            @program_counter += 2
+
+            return 12
+        end
+
+        def ld_0xFF00_n_a(n)
+            @memory[0xFF00 + n] = registers[:a]
+
+            @program_counter += 2
+
+            return 12
         end
 
         def ld(r1, r2)
