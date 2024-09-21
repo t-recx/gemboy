@@ -4203,7 +4203,7 @@ describe CPU do
 
         describe 'bit manipulation' do
             describe 'rotate and shift' do
-                rlc_rrc_r_instructions = [
+                bit_manipulation_instructions = [
                     { type: "RLC", opcodes: [0xCB, 0x07], source: :a, source_value: 0b00000000, expected_source_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG] },
                     { type: "RLC", opcodes: [0xCB, 0x00], source: :b, source_value: 0b11001010, expected_source_value_after: 0b10010101, expected_flags_set_after: [CPU::CARRY_FLAG] },
                     { type: "RLC", opcodes: [0xCB, 0x01], source: :c, source_value: 0b11111111, expected_source_value_after: 0b11111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
@@ -4218,14 +4218,58 @@ describe CPU do
                     { type: "RRC", opcodes: [0xCB, 0x0B], source: :e, source_value: 0b00000010, expected_source_value_after: 0b00000001, expected_flags_set_after: [] },
                     { type: "RRC", opcodes: [0xCB, 0x0C], source: :h, source_value: 0b10000001, expected_source_value_after: 0b11000000, expected_flags_set_after: [CPU::CARRY_FLAG] },
                     { type: "RRC", opcodes: [0xCB, 0x0D], source: :l, source_value: 0b00000001, expected_source_value_after: 0b10000000, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x17], source: :a, source_value: 0b00000000, flags_set_before: [], expected_source_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x10], source: :b, source_value: 0b10000000, flags_set_before: [], expected_source_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x11], source: :c, source_value: 0b00000001, flags_set_before: [CPU::CARRY_FLAG], expected_source_value_after: 0b00000011, expected_flags_set_after: [] },
+                    { type: "RL", opcodes: [0xCB, 0x12], source: :d, source_value: 0b10101010, flags_set_before: [], expected_source_value_after: 0b01010100, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x13], source: :e, source_value: 0b11111111, flags_set_before: [CPU::CARRY_FLAG], expected_source_value_after: 0b11111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x14], source: :h, source_value: 0b10000001, flags_set_before: [], expected_source_value_after: 0b00000010, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x15], source: :l, source_value: 0b00000001, flags_set_before: [CPU::CARRY_FLAG], expected_source_value_after: 0b00000011, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1F], source: :a, source_value: 0b11001001, flags_set_before: [CPU::CARRY_FLAG], expected_source_value_after: 0b11100100, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RR", opcodes: [0xCB, 0x1F], source: :a, source_value: 0b11001001, flags_set_before: [], expected_source_value_after: 0b01100100, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RR", opcodes: [0xCB, 0x1F], source: :a, source_value: 0b00000001, flags_set_before: [], expected_source_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                    { type: "RR", opcodes: [0xCB, 0x1F], source: :a, source_value: 0b00000000, flags_set_before: [CPU::CARRY_FLAG], expected_source_value_after: 0b10000000, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x18], source: :b, source_value: 0b10101010, flags_set_before: [], expected_source_value_after: 0b01010101, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x19], source: :c, source_value: 0b11111111, flags_set_before: [], expected_source_value_after: 0b01111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RR", opcodes: [0xCB, 0x1A], source: :d, source_value: 0b00000000, flags_set_before: [CPU::CARRY_FLAG], expected_source_value_after: 0b10000000, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1B], source: :e, source_value: 0b00000010, flags_set_before: [], expected_source_value_after: 0b00000001, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1C], source: :h, source_value: 0b01010101, flags_set_before: [CPU::CARRY_FLAG], expected_source_value_after: 0b10101010, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1D], source: :l, source_value: 0b10000000, flags_set_before: [], expected_source_value_after: 0b01000000, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x27], source: :a, source_value: 0b01101010, flags_set_before: [], expected_source_value_after: 0b11010100, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x27], source: :a, source_value: 0b10000000, flags_set_before: [], expected_source_value_after: 0b00000000, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SLA", opcodes: [0xCB, 0x27], source: :a, source_value: 0b00000001, flags_set_before: [], expected_source_value_after: 0b00000010, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x27], source: :a, source_value: 0b00000000, flags_set_before: [], expected_source_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG] },
+                    { type: "SLA", opcodes: [0xCB, 0x20], source: :b, source_value: 0b01010101, flags_set_before: [], expected_source_value_after: 0b10101010, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x21], source: :c, source_value: 0b00111111, flags_set_before: [], expected_source_value_after: 0b01111110, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x22], source: :d, source_value: 0b00000010, flags_set_before: [], expected_source_value_after: 0b00000100, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x23], source: :e, source_value: 0b11111111, flags_set_before: [], expected_source_value_after: 0b11111110, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SLA", opcodes: [0xCB, 0x24], source: :h, source_value: 0b00001111, flags_set_before: [], expected_source_value_after: 0b00011110, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x25], source: :l, source_value: 0b01111111, flags_set_before: [], expected_source_value_after: 0b11111110, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2F], source: :a, source_value: 0b01111111, flags_set_before: [], expected_source_value_after: 0b00111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x2F], source: :a, source_value: 0b10000000, flags_set_before: [], expected_source_value_after: 0b11000000, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2F], source: :a, source_value: 0b00000000, flags_set_before: [], expected_source_value_after: 0b00000000, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2F], source: :a, source_value: 0b11010101, flags_set_before: [], expected_source_value_after: 0b11101010, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x28], source: :b, source_value: 0b11010101, flags_set_before: [], expected_source_value_after: 0b11101010, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x29], source: :c, source_value: 0b10101010, flags_set_before: [], expected_source_value_after: 0b11010101, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2A], source: :d, source_value: 0b10101010, flags_set_before: [], expected_source_value_after: 0b11010101, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2A], source: :d, source_value: 0b10101010, flags_set_before: [], expected_source_value_after: 0b11010101, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2B], source: :e, source_value: 0b01111111, flags_set_before: [], expected_source_value_after: 0b00111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x2C], source: :h, source_value: 0b00001111, flags_set_before: [], expected_source_value_after: 0b00000111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x2D], source: :l, source_value: 0b11101111, flags_set_before: [], expected_source_value_after: 0b11110111, expected_flags_set_after: [CPU::CARRY_FLAG] },
                 ]
 
-                rlc_rrc_r_instructions.each do |inst|
+                bit_manipulation_instructions.each do |inst|
                     describe "#{inst[:type]} r" do
                         let(:data) { inst[:opcodes] }
 
                         before do
                             subject.registers[inst[:source]] = inst[:source_value]
+
+                            unless inst[:flags_set_before].nil?
+                                inst[:flags_set_before].each do |flag|
+                                    subject.registers[:f] |= flag
+                                end
+                            end
                         end
 
                         it "should rotate value in source" do
@@ -4256,6 +4300,104 @@ describe CPU do
                           cycles = subject.instruction data
 
                           _(cycles).must_equal 8
+                        end
+
+                        it 'should update the program_counter correctly' do
+                            subject.program_counter = 0x100
+
+                            subject.instruction data
+
+                            _(subject.program_counter).must_equal(0x102)
+                        end
+                    end
+                end
+
+                bit_manipulation_hl_instructions = [
+                    { type: "RL", opcodes: [0xCB, 0x16], memory_address: 0xFF00, memory_value: 0b00000000, flags_set_before: [], expected_memory_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x16], memory_address: 0xFF01, memory_value: 0b10000000, flags_set_before: [], expected_memory_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x16], memory_address: 0xFA00, memory_value: 0b00000001, flags_set_before: [CPU::CARRY_FLAG], expected_memory_value_after: 0b00000011, expected_flags_set_after: [] },
+                    { type: "RL", opcodes: [0xCB, 0x16], memory_address: 0xF020, memory_value: 0b10101010, flags_set_before: [], expected_memory_value_after: 0b01010100, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x16], memory_address: 0xFE02, memory_value: 0b11111111, flags_set_before: [CPU::CARRY_FLAG], expected_memory_value_after: 0b11111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x16], memory_address: 0xAFC0, memory_value: 0b10000001, flags_set_before: [], expected_memory_value_after: 0b00000010, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RL", opcodes: [0xCB, 0x16], memory_address: 0x2211, memory_value: 0b00000001, flags_set_before: [CPU::CARRY_FLAG], expected_memory_value_after: 0b00000011, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0x2212, memory_value: 0b11001001, flags_set_before: [CPU::CARRY_FLAG], expected_memory_value_after: 0b11100100, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0x2251, memory_value: 0b11001001, flags_set_before: [], expected_memory_value_after: 0b01100100, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0x2211, memory_value: 0b00000001, flags_set_before: [], expected_memory_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG, CPU::CARRY_FLAG] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0x2A11, memory_value: 0b00000000, flags_set_before: [CPU::CARRY_FLAG], expected_memory_value_after: 0b10000000, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0xF211, memory_value: 0b10101010, flags_set_before: [], expected_memory_value_after: 0b01010101, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0x2B11, memory_value: 0b11111111, flags_set_before: [], expected_memory_value_after: 0b01111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0x22A1, memory_value: 0b00000000, flags_set_before: [CPU::CARRY_FLAG], expected_memory_value_after: 0b10000000, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0x22C1, memory_value: 0b00000010, flags_set_before: [], expected_memory_value_after: 0b00000001, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0x0211, memory_value: 0b01010101, flags_set_before: [CPU::CARRY_FLAG], expected_memory_value_after: 0b10101010, expected_flags_set_after: [] },
+                    { type: "RR", opcodes: [0xCB, 0x1E], memory_address: 0x2111, memory_value: 0b10000000, flags_set_before: [], expected_memory_value_after: 0b01000000, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x0001, memory_value: 0b01101010, flags_set_before: [], expected_memory_value_after: 0b11010100, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x0011, memory_value: 0b10000000, flags_set_before: [], expected_memory_value_after: 0b00000000, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x0021, memory_value: 0b00000001, flags_set_before: [], expected_memory_value_after: 0b00000010, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x0301, memory_value: 0b00000000, flags_set_before: [], expected_memory_value_after: 0b00000000, expected_flags_set_after: [CPU::ZERO_FLAG] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x5001, memory_value: 0b01010101, flags_set_before: [], expected_memory_value_after: 0b10101010, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x0501, memory_value: 0b00111111, flags_set_before: [], expected_memory_value_after: 0b01111110, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x0A01, memory_value: 0b00000010, flags_set_before: [], expected_memory_value_after: 0b00000100, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x0B01, memory_value: 0b11111111, flags_set_before: [], expected_memory_value_after: 0b11111110, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x00C1, memory_value: 0b00001111, flags_set_before: [], expected_memory_value_after: 0b00011110, expected_flags_set_after: [] },
+                    { type: "SLA", opcodes: [0xCB, 0x26], memory_address: 0x000D, memory_value: 0b01111111, flags_set_before: [], expected_memory_value_after: 0b11111110, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x0234, memory_value: 0b01111111, flags_set_before: [], expected_memory_value_after: 0b00111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x0235, memory_value: 0b10000000, flags_set_before: [], expected_memory_value_after: 0b11000000, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x0236, memory_value: 0b00000000, flags_set_before: [], expected_memory_value_after: 0b00000000, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x0237, memory_value: 0b11010101, flags_set_before: [], expected_memory_value_after: 0b11101010, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x0238, memory_value: 0b11010101, flags_set_before: [], expected_memory_value_after: 0b11101010, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x0239, memory_value: 0b10101010, flags_set_before: [], expected_memory_value_after: 0b11010101, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x023A, memory_value: 0b10101010, flags_set_before: [], expected_memory_value_after: 0b11010101, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x023B, memory_value: 0b10101010, flags_set_before: [], expected_memory_value_after: 0b11010101, expected_flags_set_after: [] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x023C, memory_value: 0b01111111, flags_set_before: [], expected_memory_value_after: 0b00111111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x023D, memory_value: 0b00001111, flags_set_before: [], expected_memory_value_after: 0b00000111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                    { type: "SRA", opcodes: [0xCB, 0x2E], memory_address: 0x023E, memory_value: 0b11101111, flags_set_before: [], expected_memory_value_after: 0b11110111, expected_flags_set_after: [CPU::CARRY_FLAG] },
+                ]
+
+                bit_manipulation_hl_instructions.each do |inst|
+                    describe "#{inst[:type]} (HL)" do
+                        let(:data) { inst[:opcodes] }
+
+                        before do
+                            memory[inst[:memory_address]] = inst[:memory_value]
+
+                            subject.registers[:h] = Utils.get_hi(inst[:memory_address])
+                            subject.registers[:l] = Utils.get_lo(inst[:memory_address])
+
+                            unless inst[:flags_set_before].nil?
+                                inst[:flags_set_before].each do |flag|
+                                    subject.registers[:f] |= flag
+                                end
+                            end
+                        end
+
+                        it "should rotate value in (HL)" do
+                            subject.instruction data
+
+                            _(memory[inst[:memory_address]]).must_equal(inst[:expected_memory_value_after])
+                        end
+
+                        it "should set the flags #{inst[:expected_flags_set_after]}" do
+                            subject.instruction data
+
+                            inst[:expected_flags_set_after].each do |flag|
+                                _(Utils.flag_set?(subject.registers[:f], flag)).must_equal true
+                            end
+                        end
+
+                        it 'should clear half-carry and subtract flags' do
+                            subject.registers[:f] |= CPU::HALF_CARRY_FLAG
+                            subject.registers[:f] |= CPU::SUBTRACT_FLAG
+
+                            subject.instruction data
+
+                            _(Utils.flag_set?(subject.registers[:f], CPU::HALF_CARRY_FLAG)).must_equal false
+                            _(Utils.flag_set?(subject.registers[:f], CPU::SUBTRACT_FLAG)).must_equal false
+                        end
+
+                        it 'should return correct amount of cycles used' do
+                          cycles = subject.instruction data
+
+                          _(cycles).must_equal 16
                         end
 
                         it 'should update the program_counter correctly' do

@@ -526,6 +526,70 @@ module Gemboy
                             rrc_r(:l)
                         when 0x0E
                             rrc_hl
+                        when 0x17
+                            rl_r(:a)
+                        when 0x10
+                            rl_r(:b)
+                        when 0x11
+                            rl_r(:c)
+                        when 0x12
+                            rl_r(:d)
+                        when 0x13
+                            rl_r(:e)
+                        when 0x14
+                            rl_r(:h)
+                        when 0x15
+                            rl_r(:l)
+                        when 0x16
+                            rl_hl
+                        when 0x1F
+                            rr_r(:a)
+                        when 0x18
+                            rr_r(:b)
+                        when 0x19
+                            rr_r(:c)
+                        when 0x1A
+                            rr_r(:d)
+                        when 0x1B
+                            rr_r(:e)
+                        when 0x1C
+                            rr_r(:h)
+                        when 0x1D
+                            rr_r(:l)
+                        when 0x1E
+                            rr_hl
+                        when 0x27
+                            sla_r(:a)
+                        when 0x20
+                            sla_r(:b)
+                        when 0x21
+                            sla_r(:c)
+                        when 0x22
+                            sla_r(:d)
+                        when 0x23
+                            sla_r(:e)
+                        when 0x24
+                            sla_r(:h)
+                        when 0x25
+                            sla_r(:l)
+                        when 0x26
+                            sla_hl
+                        when 0x2F
+                            sra_r(:a)
+                        when 0x28
+                            sra_r(:b)
+                        when 0x29
+                            sra_r(:c)
+                        when 0x2A
+                            sra_r(:d)
+                        when 0x2B
+                            sra_r(:e)
+                        when 0x2C
+                            sra_r(:h)
+                        when 0x2D
+                            sra_r(:l)
+                        when 0x2E
+                            sra_hl
                     end
             end
 
@@ -537,6 +601,70 @@ module Gemboy
         end
 
         private
+
+        def sra_hl
+            @memory[hl] = _sra_n(@memory[hl])
+
+            @program_counter += 2
+
+            return 16
+        end
+
+        def sra_r(r)
+            @registers[r] = _sra_n(@registers[r])
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def sla_hl
+            @memory[hl] = _sla_n(@memory[hl])
+
+            @program_counter += 2
+
+            return 16
+        end
+
+        def sla_r(r)
+            @registers[r] = _sla_n(@registers[r])
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def rr_hl
+            @memory[hl] = _rr_n(@memory[hl])
+
+            @program_counter += 2
+
+            return 16 
+        end
+
+        def rr_r(r)
+            @registers[r] = _rr_n(@registers[r])
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def rl_r(r)
+            @registers[r] = _rl_n(@registers[r])
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def rl_hl
+            @memory[hl] = _rl_n(@memory[hl])
+
+            @program_counter += 2
+
+            return 16 
+        end
 
         def rrc_r(r)
             @registers[r] = _rrc_n(@registers[r])
@@ -568,6 +696,64 @@ module Gemboy
             @program_counter += 2
 
             return 16
+        end
+
+        def _sra_n(n)
+            original_value = n
+            new_value = n
+
+            new_value = (original_value >> 1) | (original_value & 0x80)
+            new_value &= 0xFF
+
+            reset_flags
+            set_flag(ZERO_FLAG) if new_value == 0
+            set_flag(CARRY_FLAG) if (original_value & 0x01) != 0
+
+            new_value
+        end
+
+        def _sla_n(n)
+            original_value = n
+            new_value = n
+
+            new_value = original_value << 1
+            new_value &= 0xFF
+
+            reset_flags
+            set_flag(ZERO_FLAG) if new_value == 0
+            set_flag(CARRY_FLAG) if (original_value & 0x80) != 0
+
+            new_value
+        end
+
+        def _rl_n(n)
+            original_value = n
+            new_value = n
+
+            carry_in = flag_set?(CARRY_FLAG) ? 1 : 0
+            new_value = ((original_value << 1) | carry_in)
+            new_value &= 0xFF
+
+            reset_flags
+            set_flag(ZERO_FLAG) if new_value == 0
+            set_flag(CARRY_FLAG) if (original_value & 0x80) != 0
+
+            new_value
+        end
+
+        def _rr_n(n)
+            original_value = n
+            new_value = n
+
+            carry_in = flag_set?(CARRY_FLAG) ? 1 : 0
+            new_value = ((carry_in << 7) | (original_value >> 1))
+            new_value &= 0xFF
+
+            reset_flags
+            set_flag(ZERO_FLAG) if new_value == 0
+            set_flag(CARRY_FLAG) if (original_value & 0x01) != 0
+
+            new_value
         end
 
         def _rrc_n(n)
