@@ -510,6 +510,22 @@ module Gemboy
                             rlc_r(:l)
                         when 0x06
                             rlc_hl
+                        when 0x0F
+                            rrc_r(:a)
+                        when 0x08
+                            rrc_r(:b)
+                        when 0x09
+                            rrc_r(:c)
+                        when 0x0A
+                            rrc_r(:d)
+                        when 0x0B
+                            rrc_r(:e)
+                        when 0x0C
+                            rrc_r(:h)
+                        when 0x0D
+                            rrc_r(:l)
+                        when 0x0E
+                            rrc_hl
                     end
             end
 
@@ -521,6 +537,22 @@ module Gemboy
         end
 
         private
+
+        def rrc_r(r)
+            @registers[r] = _rrc_n(@registers[r])
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def rrc_hl
+            @memory[hl] = _rrc_n(@memory[hl])
+
+            @program_counter += 2
+
+            return 16
+        end
 
         def rlc_r(r)
             @registers[r] = _rlc_n(@registers[r])
@@ -536,6 +568,21 @@ module Gemboy
             @program_counter += 2
 
             return 16
+        end
+
+        def _rrc_n(n)
+            original_value = n
+            new_value = n
+
+            carry_out = original_value & 0x01
+            new_value = ((original_value >> 1) | (carry_out << 7))
+            new_value &= 0xFF
+
+            reset_flags
+            set_flag(ZERO_FLAG) if new_value == 0
+            set_flag(CARRY_FLAG) if carry_out == 1
+
+            new_value
         end
 
         def _rlc_n(n)
