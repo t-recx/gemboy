@@ -299,6 +299,53 @@ describe CPU do
             end
         end
 
+        describe 'reset' do
+            rst_instructions = [
+                { opcode: 0xC7, program_counter: 0x1234, expected_program_counter: 0x0000, expected_memory_FFFC: 0x35, expected_memory_FFFD: 0x12 },
+                { opcode: 0xCF, program_counter: 0x5678, expected_program_counter: 0x0008, expected_memory_FFFC: 0x79, expected_memory_FFFD: 0x56 },
+                { opcode: 0xD7, program_counter: 0x9ABC, expected_program_counter: 0x0010, expected_memory_FFFC: 0xBD, expected_memory_FFFD: 0x9A },
+                { opcode: 0xDF, program_counter: 0xDEAD, expected_program_counter: 0x0018, expected_memory_FFFC: 0xAE, expected_memory_FFFD: 0xDE },
+                { opcode: 0xE7, program_counter: 0xBEEF, expected_program_counter: 0x0020, expected_memory_FFFC: 0xF0, expected_memory_FFFD: 0xBE },
+                { opcode: 0xEF, program_counter: 0xCAFE, expected_program_counter: 0x0028, expected_memory_FFFC: 0xFF, expected_memory_FFFD: 0xCA },
+                { opcode: 0xF7, program_counter: 0x1337, expected_program_counter: 0x0030, expected_memory_FFFC: 0x38, expected_memory_FFFD: 0x13 },
+                { opcode: 0xFF, program_counter: 0xABCD, expected_program_counter: 0x0038, expected_memory_FFFC: 0xCE, expected_memory_FFFD: 0xAB },
+            ]
+
+            rst_instructions.each do |inst|
+                describe 'RST n' do
+                    let(:data) { [inst[:opcode]] }
+
+                    before do
+                        subject.program_counter = inst[:program_counter]
+                    end
+
+                    it 'should update the memory correctly' do
+                        subject.instruction data
+
+                        _(subject.sp).must_equal(0xFFFC)
+                        if (inst[:expected_memory_FFFC])
+                            _(memory[0xFFFC]).must_equal(inst[:expected_memory_FFFC])
+                        end
+                        if (inst[:expected_memory_FFFD])
+                            _(memory[0xFFFD]).must_equal(inst[:expected_memory_FFFD])
+                        end
+                    end
+
+                    it 'should set the program counter to expected value' do
+                        subject.instruction data
+
+                        _(subject.program_counter).must_equal inst[:expected_program_counter]
+                    end
+
+                    it 'should return correct amount of cycles used' do
+                        cycles = subject.instruction data
+
+                        _(cycles).must_equal(16)
+                    end
+                end
+            end
+        end
+
         describe 'jump' do
             before do
                 subject.program_counter = 0x00

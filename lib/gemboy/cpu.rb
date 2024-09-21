@@ -444,10 +444,39 @@ module Gemboy
                     ret_c
                 when 0xD9
                     reti
+                when 0xC7
+                    rst 0x0000
+                when 0xCF
+                    rst 0x0008
+                when 0xD7
+                    rst 0x0010
+                when 0xDF
+                    rst 0x0018
+                when 0xE7
+                    rst 0x0020
+                when 0xEF
+                    rst 0x0028
+                when 0xF7
+                    rst 0x0030
+                when 0xFF
+                    rst 0x0038
             end
         end
 
         private
+
+        def rst(n)
+            @sp -= 2
+
+            next_pc = @program_counter + 1
+
+            @memory[@sp] = Utils.get_lo(next_pc)
+            @memory[@sp + 1] = Utils.get_hi(next_pc)
+
+            @program_counter = n
+
+            return 16
+        end
 
         def reti
             @ime = true
