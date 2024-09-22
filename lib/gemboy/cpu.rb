@@ -590,6 +590,166 @@ module Gemboy
                             sra_r(:l)
                         when 0x2E
                             sra_hl
+                        when 0x37
+                            swap_r(:a)
+                        when 0x30
+                            swap_r(:b)
+                        when 0x31
+                            swap_r(:c)
+                        when 0x32
+                            swap_r(:d)
+                        when 0x33
+                            swap_r(:e)
+                        when 0x34
+                            swap_r(:h)
+                        when 0x35
+                            swap_r(:l)
+                        when 0x36
+                            swap_hl
+                        when 0x3F
+                            srl_r(:a)
+                        when 0x38
+                            srl_r(:b)
+                        when 0x39
+                            srl_r(:c)
+                        when 0x3A
+                            srl_r(:d)
+                        when 0x3B
+                            srl_r(:e)
+                        when 0x3C
+                            srl_r(:h)
+                        when 0x3D
+                            srl_r(:l)
+                        when 0x3E
+                            srl_hl
+                        when 0x47
+                            bit_r(:a, 0)
+                        when 0x40
+                            bit_r(:b, 0)
+                        when 0x41
+                            bit_r(:c, 0)
+                        when 0x42
+                            bit_r(:d, 0)
+                        when 0x43
+                            bit_r(:e, 0)
+                        when 0x44
+                            bit_r(:h, 0)
+                        when 0x45
+                            bit_r(:l, 0)
+                        when 0x46
+                            bit_hl(0)
+                        when 0x4F
+                            bit_r(:a, 1)
+                        when 0x48
+                            bit_r(:b, 1)
+                        when 0x49
+                            bit_r(:c, 1)
+                        when 0x4A
+                            bit_r(:d, 1)
+                        when 0x4B
+                            bit_r(:e, 1)
+                        when 0x4C
+                            bit_r(:h, 1)
+                        when 0x4D
+                            bit_r(:l, 1)
+                        when 0x4E
+                            bit_hl(1)
+                        when 0x57
+                            bit_r(:a, 2)
+                        when 0x50
+                            bit_r(:b, 2)
+                        when 0x51
+                            bit_r(:c, 2)
+                        when 0x52
+                            bit_r(:d, 2)
+                        when 0x53
+                            bit_r(:e, 2)
+                        when 0x54
+                            bit_r(:h, 2)
+                        when 0x55
+                            bit_r(:l, 2)
+                        when 0x56
+                            bit_hl(2)
+                        when 0x5F
+                            bit_r(:a, 3)
+                        when 0x58
+                            bit_r(:b, 3)
+                        when 0x59
+                            bit_r(:c, 3)
+                        when 0x5A
+                            bit_r(:d, 3)
+                        when 0x5B
+                            bit_r(:e, 3)
+                        when 0x5C
+                            bit_r(:h, 3)
+                        when 0x5D
+                            bit_r(:l, 3)
+                        when 0x5E
+                            bit_hl(3)
+                        when 0x67
+                            bit_r(:a, 4)
+                        when 0x60
+                            bit_r(:b, 4)
+                        when 0x61
+                            bit_r(:c, 4)
+                        when 0x62
+                            bit_r(:d, 4)
+                        when 0x63
+                            bit_r(:e, 4)
+                        when 0x64
+                            bit_r(:h, 4)
+                        when 0x65
+                            bit_r(:l, 4)
+                        when 0x66
+                            bit_hl(4)
+                        when 0x6F
+                            bit_r(:a, 5)
+                        when 0x68
+                            bit_r(:b, 5)
+                        when 0x69
+                            bit_r(:c, 5)
+                        when 0x6A
+                            bit_r(:d, 5)
+                        when 0x6B
+                            bit_r(:e, 5)
+                        when 0x6C
+                            bit_r(:h, 5)
+                        when 0x6D
+                            bit_r(:l, 5)
+                        when 0x6E
+                            bit_hl(5)
+                        when 0x77
+                            bit_r(:a, 6)
+                        when 0x70
+                            bit_r(:b, 6)
+                        when 0x71
+                            bit_r(:c, 6)
+                        when 0x72
+                            bit_r(:d, 6)
+                        when 0x73
+                            bit_r(:e, 6)
+                        when 0x74
+                            bit_r(:h, 6)
+                        when 0x75
+                            bit_r(:l, 6)
+                        when 0x76
+                            bit_hl(6)
+                        when 0x7F
+                            bit_r(:a, 7)
+                        when 0x78
+                            bit_r(:b, 7)
+                        when 0x79
+                            bit_r(:c, 7)
+                        when 0x7A
+                            bit_r(:d, 7)
+                        when 0x7B
+                            bit_r(:e, 7)
+                        when 0x7C
+                            bit_r(:h, 7)
+                        when 0x7D
+                            bit_r(:l, 7)
+                        when 0x7E
+                            bit_hl(7)
                     end
             end
 
@@ -601,6 +761,54 @@ module Gemboy
         end
 
         private
+
+        def bit_r(r, pos)
+            _bit_n(@registers[r], pos)
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def bit_hl(pos)
+            _bit_n(@memory[hl], pos)
+
+            @program_counter += 2
+
+            return 16
+        end
+
+        def srl_r(r)
+            @registers[r] = _srl_n(@registers[r])
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def srl_hl
+            @memory[hl] = _srl_n(@memory[hl])
+
+            @program_counter += 2
+
+            return 16
+        end
+
+        def swap_r(r)
+            @registers[r] = _swap_n(@registers[r])
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def swap_hl
+            @memory[hl] = _swap_n(@memory[hl])
+
+            @program_counter += 2
+
+            return 16
+        end
 
         def sra_hl
             @memory[hl] = _sra_n(@memory[hl])
@@ -696,6 +904,35 @@ module Gemboy
             @program_counter += 2
 
             return 16
+        end
+
+        def _bit_n(n, pos)
+            set_flag(ZERO_FLAG) if !Utils.bit_set?(n, pos)
+            set_flag(HALF_CARRY_FLAG)
+            clear_flag(SUBTRACT_FLAG)
+        end
+
+        def _swap_n(n)
+            new_value = ((n & 0x0F) << 4) | ((n & 0xF0) >> 4)
+
+            reset_flags
+            set_flag(ZERO_FLAG) if new_value == 0
+
+            new_value
+        end
+
+        def _srl_n(n)
+            original_value = n
+            new_value = n
+
+            new_value = original_value >> 1
+            new_value &= 0xFF
+
+            reset_flags
+            set_flag(ZERO_FLAG) if new_value == 0
+            set_flag(CARRY_FLAG) if (original_value & 0x01) == 1
+
+            new_value
         end
 
         def _sra_n(n)

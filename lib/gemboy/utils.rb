@@ -28,6 +28,10 @@ module Gemboy
             def flag_set?(value, flag)
                 (value & flag) != 0
             end
+
+            def bit_set?(number, bit_position)
+                (number & (1 << bit_position)) != 0
+            end
         end
     end
 end
