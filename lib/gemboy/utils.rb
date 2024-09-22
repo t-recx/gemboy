@@ -32,6 +32,10 @@ module Gemboy
             def bit_set?(number, bit_position)
                 (number & (1 << bit_position)) != 0
             end
+
+            def set_bit(number, bit_position)
+                number | (1 << bit_position)
+            end
         end
     end
 end

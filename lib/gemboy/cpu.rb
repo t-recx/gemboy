@@ -750,6 +750,134 @@ module Gemboy
                             bit_r(:l, 7)
                         when 0x7E
                             bit_hl(7)
+                        when 0xC7
+                            set_r(:a, 0)
+                        when 0xC0
+                            set_r(:b, 0)
+                        when 0xC1
+                            set_r(:c, 0)
+                        when 0xC2
+                            set_r(:d, 0)
+                        when 0xC3
+                            set_r(:e, 0)
+                        when 0xC4
+                            set_r(:h, 0)
+                        when 0xC5
+                            set_r(:l, 0)
+                        when 0xC6
+                            set_hl(0)
+                        when 0xCF
+                            set_r(:a, 1)
+                        when 0xC8
+                            set_r(:b, 1)
+                        when 0xC9
+                            set_r(:c, 1)
+                        when 0xCA
+                            set_r(:d, 1)
+                        when 0xCB
+                            set_r(:e, 1)
+                        when 0xCC
+                            set_r(:h, 1)
+                        when 0xCD
+                            set_r(:l, 1)
+                        when 0xCE
+                            set_hl(1)
+                        when 0xD7
+                            set_r(:a, 2)
+                        when 0xD0
+                            set_r(:b, 2)
+                        when 0xD1
+                            set_r(:c, 2)
+                        when 0xD2
+                            set_r(:d, 2)
+                        when 0xD3
+                            set_r(:e, 2)
+                        when 0xD4
+                            set_r(:h, 2)
+                        when 0xD5
+                            set_r(:l, 2)
+                        when 0xD6
+                            set_hl(2)
+                        when 0xDF
+                            set_r(:a, 3)
+                        when 0xD8
+                            set_r(:b, 3)
+                        when 0xD9
+                            set_r(:c, 3)
+                        when 0xDA
+                            set_r(:d, 3)
+                        when 0xDB
+                            set_r(:e, 3)
+                        when 0xDC
+                            set_r(:h, 3)
+                        when 0xDD
+                            set_r(:l, 3)
+                        when 0xDE
+                            set_hl(3)
+                        when 0xE7
+                            set_r(:a, 4)
+                        when 0xE0
+                            set_r(:b, 4)
+                        when 0xE1
+                            set_r(:c, 4)
+                        when 0xE2
+                            set_r(:d, 4)
+                        when 0xE3
+                            set_r(:e, 4)
+                        when 0xE4
+                            set_r(:h, 4)
+                        when 0xE5
+                            set_r(:l, 4)
+                        when 0xE6
+                            set_hl(4)
+                        when 0xEF
+                            set_r(:a, 5)
+                        when 0xE8
+                            set_r(:b, 5)
+                        when 0xE9
+                            set_r(:c, 5)
+                        when 0xEA
+                            set_r(:d, 5)
+                        when 0xEB
+                            set_r(:e, 5)
+                        when 0xEC
+                            set_r(:h, 5)
+                        when 0xED
+                            set_r(:l, 5)
+                        when 0xEE
+                            set_hl(5)
+                        when 0xF7
+                            set_r(:a, 6)
+                        when 0xF0
+                            set_r(:b, 6)
+                        when 0xF1
+                            set_r(:c, 6)
+                        when 0xF2
+                            set_r(:d, 6)
+                        when 0xF3
+                            set_r(:e, 6)
+                        when 0xF4
+                            set_r(:h, 6)
+                        when 0xF5
+                            set_r(:l, 6)
+                        when 0xF6
+                            set_hl(6)
+                        when 0xFF
+                            set_r(:a, 7)
+                        when 0xF8
+                            set_r(:b, 7)
+                        when 0xF9
+                            set_r(:c, 7)
+                        when 0xFA
+                            set_r(:d, 7)
+                        when 0xFB
+                            set_r(:e, 7)
+                        when 0xFC
+                            set_r(:h, 7)
+                        when 0xFD
+                            set_r(:l, 7)
+                        when 0xFE
+                            set_hl(7)
                     end
             end
 
@@ -761,6 +889,22 @@ module Gemboy
         end
 
         private
+
+        def set_r(r, pos)
+            @registers[r] = Utils.set_bit(@registers[r], pos)
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def set_hl(pos)
+            @memory[hl] = Utils.set_bit(@memory[hl], pos)
+
+            @program_counter += 2
+
+            return 16
+        end
 
         def bit_r(r, pos)
             _bit_n(@registers[r], pos)
