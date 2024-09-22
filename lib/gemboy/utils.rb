@@ -36,6 +36,10 @@ module Gemboy
             def set_bit(number, bit_position)
                 number | (1 << bit_position)
             end
+
+            def reset_bit(value, bit_position)
+                value & ~(1 << bit_position)
+            end
         end
     end
 end

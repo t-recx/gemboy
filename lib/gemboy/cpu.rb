@@ -36,6 +36,12 @@ module Gemboy
             @memory = memory || Memory.new
         end
 
+        def run(data)
+            loop do
+                cycles_instruction = instruction(data, @program_counter)
+            end
+        end
+
         def instruction(data, i = 0)
             ime_after = nil
 
@@ -878,6 +884,134 @@ module Gemboy
                             set_r(:l, 7)
                         when 0xFE
                             set_hl(7)
+                        when 0x87
+                            reset_r(:a, 0)
+                        when 0x80
+                            reset_r(:b, 0)
+                        when 0x81
+                            reset_r(:c, 0)
+                        when 0x82
+                            reset_r(:d, 0)
+                        when 0x83
+                            reset_r(:e, 0)
+                        when 0x84
+                            reset_r(:h, 0)
+                        when 0x85
+                            reset_r(:l, 0)
+                        when 0x86
+                            reset_hl(0)
+                        when 0x8F
+                            reset_r(:a, 1)
+                        when 0x88
+                            reset_r(:b, 1)
+                        when 0x89
+                            reset_r(:c, 1)
+                        when 0x8A
+                            reset_r(:d, 1)
+                        when 0x8B
+                            reset_r(:e, 1)
+                        when 0x8C
+                            reset_r(:h, 1)
+                        when 0x8D
+                            reset_r(:l, 1)
+                        when 0x8E
+                            reset_hl(1)
+                        when 0x97
+                            reset_r(:a, 2)
+                        when 0x90
+                            reset_r(:b, 2)
+                        when 0x91
+                            reset_r(:c, 2)
+                        when 0x92
+                            reset_r(:d, 2)
+                        when 0x93
+                            reset_r(:e, 2)
+                        when 0x94
+                            reset_r(:h, 2)
+                        when 0x95
+                            reset_r(:l, 2)
+                        when 0x96
+                            reset_hl(2)
+                        when 0x9F
+                            reset_r(:a, 3)
+                        when 0x98
+                            reset_r(:b, 3)
+                        when 0x99
+                            reset_r(:c, 3)
+                        when 0x9A
+                            reset_r(:d, 3)
+                        when 0x9B
+                            reset_r(:e, 3)
+                        when 0x9C
+                            reset_r(:h, 3)
+                        when 0x9D
+                            reset_r(:l, 3)
+                        when 0x9E
+                            reset_hl(3)
+                        when 0xA7
+                            reset_r(:a, 4)
+                        when 0xA0
+                            reset_r(:b, 4)
+                        when 0xA1
+                            reset_r(:c, 4)
+                        when 0xA2
+                            reset_r(:d, 4)
+                        when 0xA3
+                            reset_r(:e, 4)
+                        when 0xA4
+                            reset_r(:h, 4)
+                        when 0xA5
+                            reset_r(:l, 4)
+                        when 0xA6
+                            reset_hl(4)
+                        when 0xAF
+                            reset_r(:a, 5)
+                        when 0xA8
+                            reset_r(:b, 5)
+                        when 0xA9
+                            reset_r(:c, 5)
+                        when 0xAA
+                            reset_r(:d, 5)
+                        when 0xAB
+                            reset_r(:e, 5)
+                        when 0xAC
+                            reset_r(:h, 5)
+                        when 0xAD
+                            reset_r(:l, 5)
+                        when 0xAE
+                            reset_hl(5)
+                        when 0xB7
+                            reset_r(:a, 6)
+                        when 0xB0
+                            reset_r(:b, 6)
+                        when 0xB1
+                            reset_r(:c, 6)
+                        when 0xB2
+                            reset_r(:d, 6)
+                        when 0xB3
+                            reset_r(:e, 6)
+                        when 0xB4
+                            reset_r(:h, 6)
+                        when 0xB5
+                            reset_r(:l, 6)
+                        when 0xB6
+                            reset_hl(6)
+                        when 0xBF
+                            reset_r(:a, 7)
+                        when 0xB8
+                            reset_r(:b, 7)
+                        when 0xB9
+                            reset_r(:c, 7)
+                        when 0xBA
+                            reset_r(:d, 7)
+                        when 0xBB
+                            reset_r(:e, 7)
+                        when 0xBC
+                            reset_r(:h, 7)
+                        when 0xBD
+                            reset_r(:l, 7)
+                        when 0xBE
+                            reset_hl(7)
                     end
             end
 
@@ -889,6 +1023,22 @@ module Gemboy
         end
 
         private
+
+        def reset_r(r, pos)
+            @registers[r] = Utils.reset_bit(@registers[r], pos)
+
+            @program_counter += 2
+
+            return 8
+        end
+
+        def reset_hl(pos)
+            @memory[hl] = Utils.reset_bit(@memory[hl], pos)
+
+            @program_counter += 2
+
+            return 16
+        end
 
         def set_r(r, pos)
             @registers[r] = Utils.set_bit(@registers[r], pos)
