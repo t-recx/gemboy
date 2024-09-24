@@ -3502,7 +3502,6 @@ describe CPU do
         {hl_value: 0x80, a_value: 0x00, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG]},
         {hl_value: 0x3F, a_value: 0x40, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG]}
       ]
-      cp_a_hl_instructions = []
 
       cp_a_hl_instructions.each do |inst|
         describe "CP A, (HL)" do
@@ -3565,7 +3564,6 @@ describe CPU do
         {n_value: 0x80, a_value: 0x00, flags_set: [CPU::CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::HALF_CARRY_FLAG]},
         {n_value: 0x3F, a_value: 0x40, flags_set: [CPU::HALF_CARRY_FLAG, CPU::SUBTRACT_FLAG], flags_unset: [CPU::ZERO_FLAG, CPU::CARRY_FLAG]}
       ]
-      cp_a_n_instructions = []
 
       cp_a_n_instructions.each do |inst|
         describe "CP A, n" do
@@ -4616,10 +4614,8 @@ describe CPU do
           before do
             subject.registers[inst[:source]] = inst[:source_value]
 
-            unless inst[:flags_set_before].nil?
-              inst[:flags_set_before].each do |flag|
-                subject.registers[:f] |= flag
-              end
+            inst[:flags_set_before]&.each do |flag|
+              subject.registers[:f] |= flag
             end
           end
 
@@ -5076,10 +5072,8 @@ describe CPU do
             subject.registers[:h] = Utils.get_hi(inst[:memory_address])
             subject.registers[:l] = Utils.get_lo(inst[:memory_address])
 
-            unless inst[:flags_set_before].nil?
-              inst[:flags_set_before].each do |flag|
-                subject.registers[:f] |= flag
-              end
+            inst[:flags_set_before]&.each do |flag|
+              subject.registers[:f] |= flag
             end
           end
 

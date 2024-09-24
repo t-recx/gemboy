@@ -38,7 +38,7 @@ module Gemboy
 
     def run(data)
       loop do
-        cycles_instruction = instruction(data, @program_counter)
+        instruction(data, @program_counter)
       end
     end
 
@@ -1217,7 +1217,6 @@ module Gemboy
 
     def _srl_n(n)
       original_value = n
-      new_value = n
 
       new_value = original_value >> 1
       new_value &= 0xFF
@@ -1231,7 +1230,6 @@ module Gemboy
 
     def _sra_n(n)
       original_value = n
-      new_value = n
 
       new_value = (original_value >> 1) | (original_value & 0x80)
       new_value &= 0xFF
@@ -1245,7 +1243,6 @@ module Gemboy
 
     def _sla_n(n)
       original_value = n
-      new_value = n
 
       new_value = original_value << 1
       new_value &= 0xFF
@@ -1259,7 +1256,6 @@ module Gemboy
 
     def _rl_n(n)
       original_value = n
-      new_value = n
 
       carry_in = flag_set?(CARRY_FLAG) ? 1 : 0
       new_value = ((original_value << 1) | carry_in)
@@ -1274,7 +1270,6 @@ module Gemboy
 
     def _rr_n(n)
       original_value = n
-      new_value = n
 
       carry_in = flag_set?(CARRY_FLAG) ? 1 : 0
       new_value = ((carry_in << 7) | (original_value >> 1))
@@ -1289,7 +1284,6 @@ module Gemboy
 
     def _rrc_n(n)
       original_value = n
-      new_value = n
 
       carry_out = original_value & 0x01
       new_value = ((original_value >> 1) | (carry_out << 7))
@@ -1304,7 +1298,6 @@ module Gemboy
 
     def _rlc_n(n)
       original_value = n
-      new_value = n
 
       new_value = ((original_value << 1) | (original_value >> 7))
       new_value &= 0xFF
@@ -1562,7 +1555,7 @@ module Gemboy
     end
 
     def cp_a_hl
-      _cp_n(memory[hl])
+      _cp_n(@memory[hl])
 
       @program_counter += 1
 
